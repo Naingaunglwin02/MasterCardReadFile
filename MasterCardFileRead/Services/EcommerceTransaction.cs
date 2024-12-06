@@ -8,141 +8,70 @@ namespace MasterCardFileRead.Services
     {
         public List<TransactionModel> ParseFile(string filePath)
         {
-            var headerRecords = new List<TransactionModel>();
-            string cycle = null, fileId = null, date = null, memberID = null, transFunction = null, endOfReport = null;
-            List<string> irdValues = new List<string>(), count = new List<string>(), reconAmount = new List<string>(), transferFee = new List<string>(), code = new List<string>(), proc = new List<string>();
+            var ecommerceTransactionRecords = new List<TransactionModel>();
 
             using (var reader = new StreamReader(filePath))
             {
                 string line;
+                string date = null, memberID = null, cycle = null, fileId = null;
+
                 while ((line = reader.ReadLine()) != null)
                 {
-                    // Parse header information
                     if (line.StartsWith("1IP"))
                     {
-                        if (!string.IsNullOrEmpty(memberID))
-                        {
-                            // Finalize the current record when a new section starts
-                            AddRecord();
-                        }
-
-                        int dateStart = line.IndexOf("1IP") + "1IP".Length;
-                        var parts = line.Substring(dateStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length > 0)
-                        {
-                            date = parts[5];
-                        }
-
+                        date = FileReadConditionService.ExtractDate(line, ref date);
                     }
 
                     if (line.Contains("MEMBER ID:"))
                     {
-                        int memberStart = line.IndexOf("MEMBER ID:") + "MEMBER ID:".Length;
-                        memberID = line.Substring(memberStart).Trim().Split(' ')[0];
+                        memberID = FileReadConditionService.ExtractMemberID(line);
                     }
 
                     if (line.Contains("ACCEPTANCE BRAND:"))
                     {
-                        int acceptanceBrandStart = line.IndexOf("ACCEPTANCE BRAND:") + "ACCEPTANCE BRAND:".Length;
-                        var parts = line.Substring(acceptanceBrandStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        if (parts.Length > 0)
-                        {
-                            cycle = parts[2] + " " + parts[3];
-
-                        }
-                    }
-
-                    if (line.Contains("PRES.") && !line.Contains("TOTAL"))
-                    {
-                        transFunction = line.Substring(0, 11).Trim();
-                        //System.Diagnostics.Debug.WriteLine(transFunction, "Transaction Function:");
+                        cycle = FileReadConditionService.ExtractAcceptanceBrandCycle(line);
                     }
 
                     if (line.Contains("FILE ID:"))
                     {
-                        int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
-                        var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        if (parts.Length > 0)
-                        {
-                            fileId = parts[0];
-                        }
+                        fileId = FileReadConditionService.ExtractFileID(line);
                     }
-
 
                     if (line.Contains("PURCHASE"))
                     {
-                        var procCode = line.Substring(0, 8).Trim();
-                        proc.Add(procCode);
+                        var ecommerceTransactionResult = FileReadConditionService.ProcessEcommerceTransaction(line);
 
-                        int codeStart = line.IndexOf("PURCHASE") + "PURCHASE".Length;
-                        var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        //Debug.WriteLine($"Parts Array: {string.Join(", ", parts)}");
-
-                        if (parts.Length > 0)
+                        if (ecommerceTransactionResult != null)
                         {
-                            code.Add(parts[0]);
-                            irdValues.Add(parts[1]);
-                            count.Add(parts[2]);
-                            reconAmount.Add(parts[3] + " " + parts[4]);
-                            transferFee.Add(parts[6] + " " + parts[7]);
+                            var transaction = new TransactionModel
+                            {
+                                Date = date,
+                                MemberID = memberID,
+                                Cycle = cycle,
+                                FileId = fileId,
+                                TranscFunction = ecommerceTransactionResult.TransactionFunction,
+                                Code = ecommerceTransactionResult.Code,
+                                Ird = ecommerceTransactionResult.IrdValues,
+                                Count = ecommerceTransactionResult.Count,
+                                ReconAmount = ecommerceTransactionResult.ReconAmount,
+                                TransferFee = ecommerceTransactionResult.TransferFee
+                            };
+
+                            ecommerceTransactionRecords.Add(transaction);
                         }
                     }
-
 
                     if (line.Contains("***END OF REPORT***"))
                     {
-                        int codeStart = line.IndexOf("***") + "***".Length;
-
-                        var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        if (parts.Length > 0)
-                        {
-                            endOfReport = parts[0];
-                        }
+                        break;
                     }
-
-                }
-
-                // Add the last record
-                if (!string.IsNullOrEmpty(memberID))
-                {
-                    AddRecord();
                 }
             }
 
-            return headerRecords;
-
-            void AddRecord()
-            {
-                headerRecords.Add(new TransactionModel
-                {
-                    TranscFunction = transFunction,
-                    FileId = fileId,
-                    Date = date,
-                    MemberID = memberID,
-                    Cycle = cycle,
-                    Code = new List<string>(code),
-                    Ird = new List<string>(irdValues),
-                    Count = new List<string>(count),
-                    ReconAmount = new List<string>(reconAmount),
-                    TransferFee = new List<string>(transferFee),
-
-                });
-
-                // Reset the lists for the next record
-                memberID = transFunction = endOfReport = date = cycle = null;
-                irdValues.Clear();
-                count.Clear();
-                reconAmount.Clear();
-                transferFee.Clear();
-                code.Clear();
-            }
+            return ecommerceTransactionRecords;
         }
 
-        public void AddDataToSheet(ExcelWorksheet worksheet, List<TransactionModel> headerRecords)
+        public void AddDataToSheet(ExcelWorksheet worksheet, List<TransactionModel> ecommerceTransactionRecords)
         {
             string[] headers = new string[]
             {
@@ -164,7 +93,7 @@ namespace MasterCardFileRead.Services
             int rowIndex = 2;
 
             // Add data
-            foreach (var record in headerRecords)
+            foreach (var record in ecommerceTransactionRecords)
             {
                 if (record.EndOfReport == "END")
                 {
@@ -178,11 +107,11 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 3].Value = record.FileId;
                 worksheet.Cells[rowIndex, 4].Value = record.MemberID;
                 worksheet.Cells[rowIndex, 5].Value = record.Cycle;
-                worksheet.Cells[rowIndex, 6].Value = string.Join("\n", record.Code);
-                worksheet.Cells[rowIndex, 7].Value = string.Join("\n", record.Ird);
-                worksheet.Cells[rowIndex, 8].Value = string.Join("\n", record.Count);
-                worksheet.Cells[rowIndex, 9].Value = string.Join("\n", record.ReconAmount);
-                worksheet.Cells[rowIndex, 10].Value = string.Join("\n", record.TransferFee);
+                worksheet.Cells[rowIndex, 6].Value = record.Code;
+                worksheet.Cells[rowIndex, 7].Value = record.Ird;
+                worksheet.Cells[rowIndex, 8].Value = record.Count;
+                worksheet.Cells[rowIndex, 9].Value = record.ReconAmount;
+                worksheet.Cells[rowIndex, 10].Value = record.TransferFee;
 
                 // Wrap text for multiple-line values
                 worksheet.Cells[rowIndex, 6, rowIndex, 10].Style.WrapText = true;

@@ -19,37 +19,24 @@ public class FileParserService
             worksheet.Column(i).Width = 30;
         }
     }
-    public void GenerateExcelFile(List<TransactionModel> headerRecords, List<TransactionModel> feeRecords, string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord,  string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        
         using (var package = new ExcelPackage())
         {
-            var headerSheetRecords = headerRecords
-                .Where(record => record.TranscFunction?.Contains("FIRST PRES", StringComparison.OrdinalIgnoreCase) == true)
-                .ToList();
-
-            var summarySheetRecords = feeRecords
-                .Where(record => record.TranscFunction?.Contains("FEE COLL-CSG", StringComparison.OrdinalIgnoreCase) == true)
-                .ToList();
-
-            // Add Header Records sheet
-            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Acquiring Ecommerce Transaction");
+            var filteredEcommerceRecord = ecommerceTransactionRecord
+                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
+            
+            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
-            ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, headerSheetRecords);
+            ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
 
             // Add Summary sheet
             var otherTransactionSheet = package.Workbook.Worksheets.Add("Other Transaction");
-            if (summarySheetRecords != null && summarySheetRecords.Any())
-            {
-                OtherTransaction otherTransaction = new OtherTransaction();
-                otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, summarySheetRecords);
-            }
-            else
-            {
-                // Optionally add a message or leave it blank if no data is available
-                otherTransactionSheet.Cells[1, 1].Value = "No data available for summary.";
-            }
-
+            OtherTransaction otherTransaction = new OtherTransaction();
+            otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, otherTransactionRecord);
+          
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);
         }

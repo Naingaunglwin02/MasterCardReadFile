@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using MasterCardFileRead.Models;
 using MasterCardFileRead.Services;
+using System.Transactions;
 
 [ApiController]
 [Route("api/")]
@@ -56,6 +57,8 @@ public class FileUploadController : ControllerBase
             fileParserService.GenerateExcelFile(allSections, allSectionsFee, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
+
+            allSectionsFee.Clear();
 
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "result.xlsx");
         }
