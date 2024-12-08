@@ -14,6 +14,7 @@ builder.Services.AddTransient<OtherTransaction>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 System.Diagnostics.Debug.WriteLine("this is worked...");
+System.Diagnostics.Debug.WriteLine("this is worked11...");
 
 var app = builder.Build();
 
