@@ -13,6 +13,7 @@ builder.Services.AddTransient<OtherTransaction>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+System.Diagnostics.Debug.WriteLine("this is worked...");
 
 var app = builder.Build();
 
