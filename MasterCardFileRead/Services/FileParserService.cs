@@ -19,18 +19,39 @@ public class FileParserService
             worksheet.Column(i).Width = 30;
         }
     }
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord,  string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> posTransactionRecord,  string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         
         using (var package = new ExcelPackage())
         {
+            //var filteredEcommerceRecord = ecommerceTransactionRecord
+            //    .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
+
+            // Filter records by MemberID and FileID's last digit being even
             var filteredEcommerceRecord = ecommerceTransactionRecord
-                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
-            
+                .Where(record =>
+                    record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+                    !string.IsNullOrEmpty(record.FileId) &&
+                    FileReadConditionService.ExtractFileIDEven(record.FileId) != null 
+                ).ToList();
+
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
+
+            //update for pos sheet
+
+            var filteredPosRecord = posTransactionRecord
+               .Where(record =>
+                   record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+                   !string.IsNullOrEmpty(record.FileId) &&
+                   FileReadConditionService.ExtractFileIDEven(record.FileId) != null
+               ).ToList();
+
+            var posTransactionSheet = package.Workbook.Worksheets.Add("Pos Transaction");
+            PosTransaction posTransaction = new PosTransaction();
+            posTransaction.AddDataToSheet(posTransactionSheet, filteredPosRecord);
 
             // Add Summary sheet
             var otherTransactionSheet = package.Workbook.Worksheets.Add("Other Transaction");

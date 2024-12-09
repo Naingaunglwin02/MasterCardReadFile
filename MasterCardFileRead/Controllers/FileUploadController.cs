@@ -11,11 +11,16 @@ public class FileUploadController : ControllerBase
 {
     private readonly EcommerceTransaction _ecommerceTransaction;
     private readonly OtherTransaction _otherTransaction;
+    //update
+    private readonly PosTransaction _posTransaction;
 
-    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction)
+    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction , PosTransaction posTransaction)
     {
         _ecommerceTransaction = ecommerceTransaction;
         _otherTransaction = otherTransaction;
+        //update
+        _posTransaction = posTransaction;
+
     }
 
     [HttpPost("file_read")]
@@ -28,6 +33,9 @@ public class FileUploadController : ControllerBase
 
         var allSections = new List<TransactionModel>();
         var allSectionsFee = new List<TransactionModel>();
+        //update
+        var allSectionsPos = new List<TransactionModel>();
+
         var tempFiles = new List<string>();
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
 
@@ -48,17 +56,24 @@ public class FileUploadController : ControllerBase
 
                 var sections = _ecommerceTransaction.ParseFile(tempFilePath);
                 var sectionsFee = _otherTransaction.ParseFileFee(tempFilePath);
+                //update
+                var sectionsPos = _posTransaction.ParseFilePos(tempFilePath);
+
 
                 allSections.AddRange(sections);
                 allSectionsFee.AddRange(sectionsFee);
+                //update
+                allSectionsPos.AddRange(sectionsPos);
+
             }
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.GenerateExcelFile(allSections, allSectionsFee, excelPath);
+            fileParserService.GenerateExcelFile(allSections, allSectionsFee,allSectionsPos, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
 
             allSectionsFee.Clear();
+            allSectionsPos.Clear();
 
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "result.xlsx");
         }
