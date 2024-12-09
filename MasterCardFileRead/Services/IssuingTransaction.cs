@@ -1,14 +1,13 @@
 ﻿using MasterCardFileRead.Models;
 using OfficeOpenXml;
-using MasterCardFileRead.Services;
 
 namespace MasterCardFileRead.Services
 {
-    public class EcommerceTransaction
+    public class IssuingTransaction
     {
-        public List<TransactionModel> ParseFile(string filePath)
+        public List<TransactionModel> IssuingTransactionService(string filePath)
         {
-            var ecommerceTransactionRecords = new List<TransactionModel>();
+            var issuingTransactionRecords = new List<TransactionModel>();
 
             using (var reader = new StreamReader(filePath))
             {
@@ -37,9 +36,9 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
 
-                    if (line.Contains("PURCHASE"))
+                    if (line.Contains("PURCHASE") || line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
                     {
-                        var ecommerceTransactionResult = FileReadConditionService.ProcessEcommerceTransaction(line);
+                        var ecommerceTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
 
                         if (ecommerceTransactionResult != null)
                         {
@@ -61,7 +60,7 @@ namespace MasterCardFileRead.Services
                                 TransferFeeDCDR = ecommerceTransactionResult.TransferFeeDCDR
                             };
 
-                            ecommerceTransactionRecords.Add(transaction);
+                            issuingTransactionRecords.Add(transaction);
                         }
                     }
 
@@ -72,14 +71,14 @@ namespace MasterCardFileRead.Services
                 }
             }
 
-            return ecommerceTransactionRecords;
+            return issuingTransactionRecords;
         }
 
-        public void AddDataToSheet(ExcelWorksheet worksheet, List<TransactionModel> ecommerceTransactionRecords)
+        public void AddIssuingDataToExcel(ExcelWorksheet worksheet, List<TransactionModel> ecommerceTransactionRecords)
         {
             string[] headers = new string[]
             {
-               "Transaction Function",
+                "Transaction Function",
                 "Date",
                 "File ID",
                 "Member ID",

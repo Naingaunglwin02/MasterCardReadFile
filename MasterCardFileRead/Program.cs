@@ -10,6 +10,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddTransient<EcommerceTransaction>();
 builder.Services.AddTransient<OtherTransaction>();
+builder.Services.AddTransient<IssuingTransaction>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

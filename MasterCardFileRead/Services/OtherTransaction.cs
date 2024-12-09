@@ -33,7 +33,7 @@ namespace MasterCardFileRead.Services
 
                     if (line.Contains("FILE ID:"))
                     {
-                        fileId = FileReadConditionService.ExtractFileID(line);
+                        fileId = FileReadConditionService.ExtractFileIDForOtherTransaction(line);
                     }
 
                     if (line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
@@ -47,22 +47,26 @@ namespace MasterCardFileRead.Services
                                 Date = date,
                                 MemberID = memberID,
                                 Cycle = cycle,
+                                Proc = otherTransactionResult.Proc,
                                 FileId = fileId,
                                 TranscFunction = otherTransactionResult.TransactionFunction,
                                 Code = otherTransactionResult.Code,
                                 Count = otherTransactionResult.Count,
                                 ReconAmount = otherTransactionResult.ReconAmount,
-                                TransferFee = otherTransactionResult.TransferFee
+                                ReconDCDR = otherTransactionResult.ReconDCDR,
+                                Currency = otherTransactionResult.Currency,
+                                TransferFee = otherTransactionResult.TransferFee,
+                                TransferFeeDCDR = otherTransactionResult.TransferFeeDCDR
                             };
 
                             otherTransactionRecords.Add(transaction);
                         }
                     }
 
-                    if (line.Contains("***END OF REPORT***"))
-                    {
-                        break;
-                    }
+                    //if (line.Contains("***END OF REPORT***"))
+                    //{
+                    //    break;
+                    //}
                 }
             }
 
@@ -74,16 +78,20 @@ namespace MasterCardFileRead.Services
 
             string[] headers = new string[]
              {
-                "Transaction Function",
+               "Transaction Function",
                 "Date",
                 "File ID",
                 "Member ID",
                 "Cycle",
+                "Proc",
                 "Code",
                 "IRD Values",
                 "Count",
                 "Recon Amount",
-                "Transfer Fee"
+                "DC/CR",
+                "Currency",
+                "Transfer Fee",
+                "DC/CR"
             };
 
 
@@ -107,14 +115,18 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 3].Value = record.FileId;
                 worksheet.Cells[rowIndex, 4].Value = record.MemberID;
                 worksheet.Cells[rowIndex, 5].Value = record.Cycle;
-                worksheet.Cells[rowIndex, 6].Value = record.Code;
-                worksheet.Cells[rowIndex, 7].Value = record.Ird;
-                worksheet.Cells[rowIndex, 8].Value = record.Count;
-                worksheet.Cells[rowIndex, 9].Value = record.ReconAmount;
-                worksheet.Cells[rowIndex, 10].Value = record.TransferFee;
+                worksheet.Cells[rowIndex, 6].Value = record.Proc;
+                worksheet.Cells[rowIndex, 7].Value = record.Code;
+                worksheet.Cells[rowIndex, 8].Value = record.Ird;
+                worksheet.Cells[rowIndex, 9].Value = record.Count;
+                worksheet.Cells[rowIndex, 10].Value = record.ReconAmount;
+                worksheet.Cells[rowIndex, 11].Value = record.ReconDCDR;
+                worksheet.Cells[rowIndex, 12].Value = record.Currency;
+                worksheet.Cells[rowIndex, 13].Value = record.TransferFee;
+                worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCDR;
 
                 // Wrap text for multiple-line values
-                worksheet.Cells[rowIndex, 6, rowIndex, 10].Style.WrapText = true;
+                worksheet.Cells.AutoFitColumns();
 
                 rowIndex++;
             }

@@ -13,13 +13,8 @@ public class FileParserService
 
         // Make the header row bold
         worksheet.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
-
-        for (int i = 1; i <= headers.Length; i++)
-        {
-            worksheet.Column(i).Width = 30;
-        }
     }
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord,  string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord,  string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         
@@ -27,7 +22,13 @@ public class FileParserService
         {
             var filteredEcommerceRecord = ecommerceTransactionRecord
                 .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
-            
+
+            var filteredOtherRecord = otherTransactionRecord
+                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
+
+            var filteredIssuingRecord = issuingTransactionRecord
+                .Where(record => record.MemberID?.Contains("00000014688", StringComparison.OrdinalIgnoreCase) == true).ToList();
+
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
@@ -35,8 +36,12 @@ public class FileParserService
             // Add Summary sheet
             var otherTransactionSheet = package.Workbook.Worksheets.Add("Other Transaction");
             OtherTransaction otherTransaction = new OtherTransaction();
-            otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, otherTransactionRecord);
-          
+            otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, filteredOtherRecord);
+
+            var issuingTransactionSheet = package.Workbook.Worksheets.Add("Issuing");
+            IssuingTransaction issuingTransaction = new IssuingTransaction();
+            issuingTransaction.AddIssuingDataToExcel(issuingTransactionSheet, filteredIssuingRecord);
+
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);
         }

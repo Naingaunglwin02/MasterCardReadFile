@@ -20,13 +20,17 @@
 
         public string? Code { get; set; }
 
-        //public List<string>? Proc { get; set; }
+        public string? Proc { get; set; }
 
         public string? EndOfReport { get; set; }
 
         public string? Cycle { get; set; }
 
-        //public string? Currency { get; set; }
+        public string? Currency { get; set; }
+
+        public string? ReconDCDR { get; set; }
+
+        public string? TransferFeeDCDR { get; set; }
 
     }
 
@@ -38,5 +42,9 @@
         public string? Count { get; set; }
         public string? ReconAmount { get; set; }
         public string? TransferFee { get; set; }
+        public string? Proc { get; set; }
+        public string? Currency { get; set; }
+        public string? ReconDCDR { get; set; }
+        public string? TransferFeeDCDR { get; set; }
     }
 }

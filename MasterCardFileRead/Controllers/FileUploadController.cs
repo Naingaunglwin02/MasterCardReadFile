@@ -11,11 +11,13 @@ public class FileUploadController : ControllerBase
 {
     private readonly EcommerceTransaction _ecommerceTransaction;
     private readonly OtherTransaction _otherTransaction;
+    private readonly IssuingTransaction _issuingTransaction;
 
-    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction)
+    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction, IssuingTransaction issuingTransaction)
     {
         _ecommerceTransaction = ecommerceTransaction;
         _otherTransaction = otherTransaction;
+        _issuingTransaction = issuingTransaction;
     }
 
     [HttpPost("file_read")]
@@ -28,6 +30,7 @@ public class FileUploadController : ControllerBase
 
         var allSections = new List<TransactionModel>();
         var allSectionsFee = new List<TransactionModel>();
+        var issuingTransactionSection = new List<TransactionModel>();
         var tempFiles = new List<string>();
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
 
@@ -48,13 +51,15 @@ public class FileUploadController : ControllerBase
 
                 var sections = _ecommerceTransaction.ParseFile(tempFilePath);
                 var sectionsFee = _otherTransaction.ParseFileFee(tempFilePath);
+                var sectionIssuingTransaction = _issuingTransaction.IssuingTransactionService(tempFilePath);
 
                 allSections.AddRange(sections);
                 allSectionsFee.AddRange(sectionsFee);
+                issuingTransactionSection.AddRange(sectionIssuingTransaction);
             }
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.GenerateExcelFile(allSections, allSectionsFee, excelPath);
+            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
 
