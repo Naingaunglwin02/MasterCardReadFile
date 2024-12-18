@@ -28,9 +28,9 @@
 
         public string? Currency { get; set; }
 
-        public string? ReconDCDR { get; set; }
+        public string? ReconDCCR { get; set; }
 
-        public string? TransferFeeDCDR { get; set; }
+        public string? TransferFeeDCCR { get; set; }
 
     }
 
@@ -44,7 +44,30 @@
         public string? TransferFee { get; set; }
         public string? Proc { get; set; }
         public string? Currency { get; set; }
-        public string? ReconDCDR { get; set; }
-        public string? TransferFeeDCDR { get; set; }
+        public string? ReconDCCR { get; set; }
+        public string? TransferFeeDCCR { get; set; }
+    }
+
+    public class RejectTransactionModel
+    {
+        public string? Date { get; set; }
+        public string? ProcessingMode { get; set; }
+        public string? MtiFunctionCode { get; set; }
+        public string? FileId { get; set; }
+        public string? ErrorCode { get; set; }
+        public string? ErrorDescription { get; set; }
+        public string? SourceMessage { get; set; }
+        public string? ElementId { get; set; }
+        //public string? CardNumberD0002 { get; set; }
+        //public string? MccCodeD0026 { get; set; }
+        //public string? RrnD0037 { get; set; }
+        //public string? AuthCode { get; set; }
+        //public string? TerminalId { get; set; }
+        //public string? MerchantIdD0042 { get; set; }
+        //public string? MerchantNameD0043S01 { get; set; }
+        //public string? IrdP0158S04 { get; set; }
+        //public string? SourceAmount { get; set; }
+        //public string? SourceCurrency { get; set; }
+
     }
 }

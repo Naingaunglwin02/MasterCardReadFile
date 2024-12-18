@@ -14,10 +14,10 @@ public class FileParserService
         // Make the header row bold
         worksheet.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
     }
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord,  string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        
+
         using (var package = new ExcelPackage())
         {
             var filteredEcommerceRecord = ecommerceTransactionRecord
@@ -41,6 +41,10 @@ public class FileParserService
             var issuingTransactionSheet = package.Workbook.Worksheets.Add("Issuing");
             IssuingTransaction issuingTransaction = new IssuingTransaction();
             issuingTransaction.AddIssuingDataToExcel(issuingTransactionSheet, filteredIssuingRecord);
+
+            var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
+            RejectTransaction rejectTransaction = new RejectTransaction();
+            rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
 
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);

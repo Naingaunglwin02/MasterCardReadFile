@@ -12,12 +12,14 @@ public class FileUploadController : ControllerBase
     private readonly EcommerceTransaction _ecommerceTransaction;
     private readonly OtherTransaction _otherTransaction;
     private readonly IssuingTransaction _issuingTransaction;
+    private readonly RejectTransaction _rejectTransaction;
 
-    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction, IssuingTransaction issuingTransaction)
+    public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction, IssuingTransaction issuingTransaction, RejectTransaction rejectTransaction)
     {
         _ecommerceTransaction = ecommerceTransaction;
         _otherTransaction = otherTransaction;
         _issuingTransaction = issuingTransaction;
+        _rejectTransaction = rejectTransaction;
     }
 
     [HttpPost("file_read")]
@@ -31,6 +33,7 @@ public class FileUploadController : ControllerBase
         var allSections = new List<TransactionModel>();
         var allSectionsFee = new List<TransactionModel>();
         var issuingTransactionSection = new List<TransactionModel>();
+        var rejectTransactionSection = new List<RejectTransactionModel>();
         var tempFiles = new List<string>();
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
 
@@ -52,14 +55,16 @@ public class FileUploadController : ControllerBase
                 var sections = _ecommerceTransaction.ParseFile(tempFilePath);
                 var sectionsFee = _otherTransaction.ParseFileFee(tempFilePath);
                 var sectionIssuingTransaction = _issuingTransaction.IssuingTransactionService(tempFilePath);
+                var sectionRejectTransaction = _rejectTransaction.RejectTransactionService(tempFilePath);
 
                 allSections.AddRange(sections);
                 allSectionsFee.AddRange(sectionsFee);
                 issuingTransactionSection.AddRange(sectionIssuingTransaction);
+                rejectTransactionSection.AddRange(sectionRejectTransaction);
             }
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, excelPath);
+            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, rejectTransactionSection, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
 

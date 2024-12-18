@@ -55,10 +55,10 @@ namespace MasterCardFileRead.Services
                                 Ird = ecommerceTransactionResult.IrdValues,
                                 Count = ecommerceTransactionResult.Count,
                                 ReconAmount = ecommerceTransactionResult.ReconAmount,
-                                ReconDCDR = ecommerceTransactionResult.ReconDCDR,
+                                ReconDCCR = ecommerceTransactionResult.ReconDCCR,
                                 Currency = ecommerceTransactionResult.Currency,
                                 TransferFee = ecommerceTransactionResult.TransferFee,
-                                TransferFeeDCDR = ecommerceTransactionResult.TransferFeeDCDR
+                                TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR
                             };
 
                             ecommerceTransactionRecords.Add(transaction);
@@ -120,10 +120,10 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 8].Value = record.Ird;
                 worksheet.Cells[rowIndex, 9].Value = record.Count;
                 worksheet.Cells[rowIndex, 10].Value = record.ReconAmount;
-                worksheet.Cells[rowIndex, 11].Value = record.ReconDCDR;
+                worksheet.Cells[rowIndex, 11].Value = record.ReconDCCR;
                 worksheet.Cells[rowIndex, 12].Value = record.Currency;
                 worksheet.Cells[rowIndex, 13].Value = record.TransferFee;
-                worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCDR;
+                worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
 
 
                 // Wrap text for multiple-line values

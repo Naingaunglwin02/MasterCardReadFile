@@ -30,11 +30,15 @@ public static class FileReadConditionService
     {
         int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
         var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        var getLastIndex = line.Substring(fileIdStart).Trim().Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        if(getLastIndex.Length > 0)
-        {
-            System.Diagnostics.Debug.WriteLine(getLastIndex[3], "this is last index..");
-        }
+        //var getLastIndex = line.Substring(fileIdStart).Trim().Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+        //if(getLastIndex.Length > 0)
+        //{
+        //    System.Diagnostics.Debug.WriteLine(getLastIndex[3], "this is last index..");
+        //}
+        //if (parts.Length > 0)
+        //{
+        //    System.Diagnostics.Debug.WriteLine(parts[0], "this is part...");
+        //}
         return parts.Length > 0 ? parts[0] : null;
     }
 
@@ -82,10 +86,10 @@ public static class FileReadConditionService
         result.Code = parts[0];
         result.Count = parts[1];
         result.ReconAmount = parts[2];
-        result.ReconDCDR = parts[3];
+        result.ReconDCCR = parts[3];
         result.Currency = parts[4];
         result.TransferFee = parts[5];
-        result.TransferFeeDCDR = parts[6];
+        result.TransferFeeDCCR = parts[6];
 
         return result;
     }
@@ -109,10 +113,10 @@ public static class FileReadConditionService
         result.IrdValues = parts[1];
         result.Count = parts[2];
         result.ReconAmount = parts[3];
-        result.ReconDCDR = parts[4];
+        result.ReconDCCR = parts[4];
         result.Currency = parts[5];
         result.TransferFee = parts[6];
-        result.TransferFeeDCDR = parts[7];
+        result.TransferFeeDCCR = parts[7];
 
         return result;
     }
@@ -123,7 +127,7 @@ public static class FileReadConditionService
         var keywords = new[] { "FEE COL CR", "FEE COL DR", "PURCHASE" };
 
         var matchingKeyword = keywords.FirstOrDefault(line.Contains);
-        System.Diagnostics.Debug.WriteLine(matchingKeyword, "this is keyword...");
+        //System.Diagnostics.Debug.WriteLine(matchingKeyword, "this is keyword...");
         int keywordStart = line.IndexOf(matchingKeyword);
         int codeStart = keywordStart + matchingKeyword.Length;
 
@@ -136,10 +140,10 @@ public static class FileReadConditionService
         result.Code = parts[0];
         result.Count = parts[1];
         result.ReconAmount = parts[2];
-        result.ReconDCDR = parts[3];
+        result.ReconDCCR = parts[3];
         result.Currency = parts[4];
         result.TransferFee = parts[5];
-        result.TransferFeeDCDR = parts[6];
+        result.TransferFeeDCCR = parts[6];
 
         if (line.Contains("PURCHASE"))
         {
@@ -149,15 +153,26 @@ public static class FileReadConditionService
             result.IrdValues = parts[1];
             result.Count = parts[2];
             result.ReconAmount = parts[3];
-            result.ReconDCDR = parts[4];
+            result.ReconDCCR = parts[4];
             result.Currency = parts[5];
             result.TransferFee = parts[6];
-            result.TransferFeeDCDR = parts[7];
+            result.TransferFeeDCCR = parts[7];
         }
 
         return result;
     }
 
+    public static string ExtractProcessingMode(string line)
+    {
+        int processingModeStart = line.IndexOf("PROCESSING MODE:") + "PROCESSING MODE:".Length;
+        return line.Substring(processingModeStart).Trim().Split(' ')[0];
+    }
+
+    public static string ExtractMtiFunctionCode(string line)
+    {
+        int mtiFunctionCodeStart = line.IndexOf("MTI-FUNCTION CODE:") + "MTI-FUNCTION CODE:".Length;
+        return line.Substring(mtiFunctionCodeStart).Trim().Split(' ')[0];
+    }
     //public static string ExtractEndOfReport(string line)
     //{
     //    int codeStart = line.IndexOf("***") + "***".Length;
