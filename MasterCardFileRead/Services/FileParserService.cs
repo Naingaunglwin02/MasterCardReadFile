@@ -14,49 +14,39 @@ public class FileParserService
         // Make the header row bold
         worksheet.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
     }
-<<<<<<< HEAD
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, string filePath)
-=======
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> posTransactionRecord,  string filePath)
->>>>>>> features/hhz
+
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, List<TransactionModel> posTransactionRecord, string filePath)
+
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
         using (var package = new ExcelPackage())
         {
-            //var filteredEcommerceRecord = ecommerceTransactionRecord
-            //    .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
-
             // Filter records by MemberID and FileID's last digit being even
             var filteredEcommerceRecord = ecommerceTransactionRecord
-<<<<<<< HEAD
-                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
+                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+                  !string.IsNullOrEmpty(record.FileId) &&
+                  FileReadConditionService.ExtractFileIDEven(record.FileId) != null).ToList();
 
             var filteredOtherRecord = otherTransactionRecord
-                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true).ToList();
+                .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+                  !string.IsNullOrEmpty(record.FileId) &&
+                  FileReadConditionService.ExtractFileIDForOtherTransaction(record.FileId) != null).ToList();
 
             var filteredIssuingRecord = issuingTransactionRecord
                 .Where(record => record.MemberID?.Contains("00000014688", StringComparison.OrdinalIgnoreCase) == true).ToList();
-=======
+
+            var filteredPosRecord = posTransactionRecord
                 .Where(record =>
-                    record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
-                    !string.IsNullOrEmpty(record.FileId) &&
-                    FileReadConditionService.ExtractFileIDEven(record.FileId) != null 
-                ).ToList();
->>>>>>> features/hhz
+                  record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+                  !string.IsNullOrEmpty(record.FileId) &&
+                  FileReadConditionService.ExtractFileIDOdd(record.FileId) != null).ToList();
+
 
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
 
-            //update for pos sheet
-
-            var filteredPosRecord = posTransactionRecord
-               .Where(record =>
-                   record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
-                   !string.IsNullOrEmpty(record.FileId) &&
-                   FileReadConditionService.ExtractFileIDEven(record.FileId) != null
-               ).ToList();
 
             var posTransactionSheet = package.Workbook.Worksheets.Add("Pos Transaction");
             PosTransaction posTransaction = new PosTransaction();

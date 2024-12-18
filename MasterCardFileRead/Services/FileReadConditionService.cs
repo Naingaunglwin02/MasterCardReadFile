@@ -26,20 +26,11 @@ public static class FileReadConditionService
         return parts.Length > 3 ? parts[2] + " " + parts[3] : null;
     }
 
-    public static string ExtractFileIDEven(string line)
+    public static string ExtractFileID(string line)
     {
         int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
         var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-<<<<<<< HEAD
-        //var getLastIndex = line.Substring(fileIdStart).Trim().Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        //if(getLastIndex.Length > 0)
-        //{
-        //    System.Diagnostics.Debug.WriteLine(getLastIndex[3], "this is last index..");
-        //}
-        //if (parts.Length > 0)
-        //{
-        //    System.Diagnostics.Debug.WriteLine(parts[0], "this is part...");
-        //}
+
         return parts.Length > 0 ? parts[0] : null;
     }
 
@@ -56,8 +47,8 @@ public static class FileReadConditionService
             string candidateFileId = parts[0];
 
             var segments = candidateFileId.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (segments.Length >= 4)
+           
+            if (segments.Length > 0)
             {
                 string lastSegment = segments[^1];
                 if (int.TryParse(lastSegment, out int lastValue) && lastValue > 9)
@@ -69,49 +60,12 @@ public static class FileReadConditionService
         return null;
     }
 
-    public static TransactionResult ProcessOtherTransaction(string line)
-=======
-        string lastPart = parts[^1]; // Gets the last part after the last '/'
-
-        if (parts.Length == 0)
-        {
-            return null;
-        }
-
-        if (parts.Length > 0)
-        {
-
-            if (!string.IsNullOrEmpty(lastPart) && char.IsDigit(lastPart[^1]))
-            {
-                int lastDigit = int.Parse(lastPart[^1].ToString());
-
-                // Only return the File ID if the last digit is even
-                if (lastDigit % 2 == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("Even last digit: " + line);
-                    System.Diagnostics.Debug.WriteLine("This is an even last digit File ID: " + parts[0]);
-                    return parts[0];
-                }
-            }
-        }
-
-        return null;
-
-        //return parts.Length > 0 ? parts[0] : null;
-       
-    }
     public static string ExtractFileIDOdd(string line)
->>>>>>> features/hhz
     {
         int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
         var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         string lastPart = parts[^1]; // Gets the last part after the last '/'
-
-        if (parts.Length == 0)
-        {
-            return null;
-        }
-
+       
         if (parts.Length > 0)
         {
 
@@ -119,69 +73,59 @@ public static class FileReadConditionService
             {
                 int lastDigit = int.Parse(lastPart[^1].ToString());
 
-<<<<<<< HEAD
-        result.TransactionFunction = beforeKeyword;
-        result.Proc = matchingKeyword;
-        result.Code = parts[0];
-        result.Count = parts[1];
-        result.ReconAmount = parts[2];
-        result.ReconDCCR = parts[3];
-        result.Currency = parts[4];
-        result.TransferFee = parts[5];
-        result.TransferFeeDCCR = parts[6];
-=======
-                // Only return the File ID if the last digit is even
-                if (lastDigit % 2 != 0)
+                string candidateFileId = parts[0];
+                var segments = candidateFileId.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+               
+                if (segments.Length > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("Odd last digit: " + line);
-                    System.Diagnostics.Debug.WriteLine("This is an odd last digit File ID: " + parts[0]);
-                    return parts[0];
+                    string lastSegment = segments[^1];
+                    if (lastDigit % 2 != 0 && int.TryParse(lastSegment, out int lastValue) && lastValue < 9)
+                    {
+                        return candidateFileId;
+                    }
+                }
+            }
+        }
+      
+        return null; 
+    }
+
+    public static string ExtractFileIDEven(string line)
+    {
+        // Locate the starting position of "FILE ID:"
+        int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
+
+        // Extract the substring after "FILE ID:" and split by spaces
+        var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        // Take the last part
+        string lastPart = parts[^1]; // Access the last element of the array
+
+        // Check if the last character of the last part is a digit
+        if (parts.Length > 0)
+        {
+
+            if (!string.IsNullOrEmpty(lastPart) && char.IsDigit(lastPart[^1]))
+            {
+                int lastDigit = int.Parse(lastPart[^1].ToString());
+
+                string candidateFileId = parts[0];
+                var segments = candidateFileId.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (segments.Length > 0)
+                {
+                    string lastSegment = segments[^1];
+                    if (lastDigit % 2 == 0 && int.TryParse(lastSegment, out int lastValue) && lastValue < 9)
+                    {
+                        return candidateFileId;
+                    }
                 }
             }
         }
 
+        // Return the first part of the split (typically the file ID)
         return null;
-
-        //return parts.Length > 0 ? parts[0] : null;
->>>>>>> features/hhz
-
     }
-
-    //public static string ExtractFileIDEven(string line)
-    //{
-    //    // Locate the starting position of "FILE ID:"
-    //    int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
-
-    //    // Extract the substring after "FILE ID:" and split by spaces
-    //    var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-    //    // Safeguard against empty parts array
-    //    if (parts.Length == 0)
-    //    {
-    //        return null; // Or handle the error appropriately
-    //    }
-
-    //    // Take the last part
-    //    string lastPart = parts[^1]; // Access the last element of the array
-
-    //    // Check if the last character of the last part is a digit
-    //    if (!string.IsNullOrEmpty(lastPart) && char.IsDigit(lastPart[^1]))
-    //    {
-    //        int lastDigit = int.Parse(lastPart[^1].ToString());
-
-    //        // Check if the last digit is even
-    //        if (lastDigit % 2 == 0)
-    //        {
-    //            System.Diagnostics.Debug.WriteLine("Even last digit: " + line);
-    //            System.Diagnostics.Debug.WriteLine("This is even last digit line: " + parts[0]);
-    //        }
-    //    }
-
-    //    // Return the first part of the split (typically the file ID)
-    //    return parts[0];
-    //}
-
-
 
     public static TransactionResult ProcessEcommerceTransaction(string line)
     {
@@ -223,15 +167,17 @@ public static class FileReadConditionService
         var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         result.TransactionFunction = beforeKeyword;
+        result.Proc = matchingKeyword;
         result.Code = parts[0];
         result.Count = parts[1];
-        result.ReconAmount = parts[2] + " " + parts[3];
-        result.TransferFee = parts[5] + " " + parts[6];
+        result.ReconAmount = parts[2];
+        result.ReconDCCR = parts[3];
+        result.Currency = parts[4];
+        result.TransferFee = parts[5];
+        result.TransferFeeDCCR = parts[6];
 
         return result;
     }
-
-   
 
     public static TransactionResult ProcessIssuingTransaction(string line)
     {

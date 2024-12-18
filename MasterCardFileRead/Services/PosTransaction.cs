@@ -34,8 +34,14 @@ namespace MasterCardFileRead.Services
 
                     if (line.Contains("FILE ID:"))
                     {
-                        fileId = FileReadConditionService.ExtractFileIDEven(line);
-
+                        fileId = FileReadConditionService.ExtractFileID(line);
+                        
+                        //fileId = result;
+                        ////System.Diagnostics.Debug.WriteLine(fileId, "this is fileId.....");
+                        //if (!string.IsNullOrEmpty(result))
+                        //{
+                        //    //System.Diagnostics.Debug.WriteLine(result, "this is result.....");
+                        //}
                     }
 
                     if (line.Contains("PURCHASE"))
@@ -115,7 +121,7 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 10].Value = record.TransferFee;
 
                 // Wrap text for multiple-line values
-                worksheet.Cells[rowIndex, 6, rowIndex, 10].Style.WrapText = true;
+                worksheet.Cells.AutoFitColumns();
 
                 rowIndex++;
             }

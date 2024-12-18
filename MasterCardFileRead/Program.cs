@@ -10,12 +10,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddTransient<EcommerceTransaction>();
 builder.Services.AddTransient<OtherTransaction>();
-<<<<<<< HEAD
 builder.Services.AddTransient<IssuingTransaction>();
 builder.Services.AddTransient<RejectTransaction>();
-=======
 builder.Services.AddTransient<PosTransaction>();
->>>>>>> features/hhz
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
