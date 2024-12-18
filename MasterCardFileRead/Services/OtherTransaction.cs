@@ -33,7 +33,11 @@ namespace MasterCardFileRead.Services
 
                     if (line.Contains("FILE ID:"))
                     {
+<<<<<<< HEAD
                         fileId = FileReadConditionService.ExtractFileIDForOtherTransaction(line);
+=======
+                        fileId = FileReadConditionService.ExtractFileIDEven(line);
+>>>>>>> features/hhz
                     }
 
                     if (line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))

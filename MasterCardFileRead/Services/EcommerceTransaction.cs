@@ -34,7 +34,8 @@ namespace MasterCardFileRead.Services
 
                     if (line.Contains("FILE ID:"))
                     {
-                        fileId = FileReadConditionService.ExtractFileID(line);
+                        fileId = FileReadConditionService.ExtractFileIDEven(line);
+
                     }
 
                     if (line.Contains("PURCHASE"))
