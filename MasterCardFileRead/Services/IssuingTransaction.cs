@@ -12,11 +12,11 @@ namespace MasterCardFileRead.Services
             using (var reader = new StreamReader(filePath))
             {
                 string line;
-                string date = null, memberID = null, cycle = null, fileId = null;
+                string date = null, memberID = null, cycle = null, fileId = null, endOfReport = null;
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.StartsWith("1IP"))
+                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
@@ -36,32 +36,39 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
 
-                    if (line.Contains("PURCHASE") || line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
+                    if (line.Contains("***END OF REPORT***"))
                     {
-                        var ecommerceTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
+                        endOfReport = FileReadConditionService.ExtractEndOfReport(line);
+                        System.Diagnostics.Debug.WriteLine(endOfReport, "this is end of report.....");
+                    }
 
-                        if (ecommerceTransactionResult != null)
+                    //if (line.Contains("PURCHASE") || line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
+                    //{
+                    var ecommerceTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
+
+                    if (ecommerceTransactionResult != null)
+                    {
+                        var transaction = new TransactionModel
                         {
-                            var transaction = new TransactionModel
-                            {
-                                Date = date,
-                                MemberID = memberID,
-                                Cycle = cycle,
-                                Proc = ecommerceTransactionResult.Proc,
-                                FileId = fileId,
-                                TranscFunction = ecommerceTransactionResult.TransactionFunction,
-                                Code = ecommerceTransactionResult.Code,
-                                Ird = ecommerceTransactionResult.IrdValues,
-                                Count = ecommerceTransactionResult.Count,
-                                ReconAmount = ecommerceTransactionResult.ReconAmount,
-                                ReconDCCR = ecommerceTransactionResult.ReconDCCR,
-                                Currency = ecommerceTransactionResult.Currency,
-                                TransferFee = ecommerceTransactionResult.TransferFee,
-                                TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR
-                            };
+                            Date = date,
+                            MemberID = memberID,
+                            Cycle = cycle,
+                            Proc = ecommerceTransactionResult.Proc,
+                            FileId = fileId,
+                            TranscFunction = ecommerceTransactionResult.TransactionFunction,
+                            Code = ecommerceTransactionResult.Code,
+                            Ird = ecommerceTransactionResult.IrdValues,
+                            Count = ecommerceTransactionResult.Count,
+                            ReconAmount = ecommerceTransactionResult.ReconAmount,
+                            ReconDCCR = ecommerceTransactionResult.ReconDCCR,
+                            Currency = ecommerceTransactionResult.Currency,
+                            TransferFee = ecommerceTransactionResult.TransferFee,
+                            TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR,
+                            //EndOfReport = endOfReport
+                        };
 
-                            issuingTransactionRecords.Add(transaction);
-                        }
+                        issuingTransactionRecords.Add(transaction);
+                        //}
                     }
 
                     //if (line.Contains("***END OF REPORT***"))
@@ -95,19 +102,20 @@ namespace MasterCardFileRead.Services
             };
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.AddHeaders(worksheet, headers);
+            fileParserService.AddHeaders(worksheet, headers, 15);
 
             int rowIndex = 2;
 
             // Add data
             foreach (var record in ecommerceTransactionRecords)
             {
-                if (record.EndOfReport == "END")
-                {
-                    // Insert a blank row
-                    rowIndex++;
-                    continue;
-                }
+                //System.Diagnostics.Debug.WriteLine(record.Count, "this is count......");
+                //if (record.EndOfReport == "END")
+                //{
+                //    // Insert a blank row
+                //    rowIndex++;
+                //    continue;
+                //}
 
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
                 worksheet.Cells[rowIndex, 2].Value = record.Date;

@@ -1,16 +1,20 @@
 ﻿using MasterCardFileRead.Models;
+using Microsoft.AspNetCore.Http;
+using System;
 
 public static class FileReadConditionService
 {
     public static string ExtractDate(string line, ref string date)
     {
-        int dateStart = line.IndexOf("1IP") + "1IP".Length;
+        int dateStart = line.IndexOf("BUSINESS SERVICE LEVEL:") + "BUSINESS SERVICE LEVEL:".Length;
         var parts = line.Substring(dateStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length > 5)
+        if (parts.Length > 0)
         {
-            date = parts[5];
+            date = parts[1];
         }
-        return date;
+        var dateOnlyString = DateOnly.Parse(date).ToString("MM/dd/yyyy");
+
+        return dateOnlyString;
     }
 
     public static string ExtractMemberID(string line)
@@ -127,65 +131,17 @@ public static class FileReadConditionService
         return null;
     }
 
-    public static TransactionResult ProcessEcommerceTransaction(string line)
-    {
-        var result = new TransactionResult();
-        var keywords = new[] { "PURCHASE" };
-
-        var matchingKeyword = keywords.FirstOrDefault(line.Contains);
-        int keywordStart = line.IndexOf(matchingKeyword);
-        int codeStart = keywordStart + matchingKeyword.Length;
-
-        string beforeKeyword = line.Substring(0, keywordStart).Trim();
-
-        var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        result.TransactionFunction = beforeKeyword;
-        result.Proc = matchingKeyword;
-        result.Code = parts[0];
-        result.IrdValues = parts[1];
-        result.Count = parts[2];
-        result.ReconAmount = parts[3];
-        result.ReconDCCR = parts[4];
-        result.Currency = parts[5];
-        result.TransferFee = parts[6];
-        result.TransferFeeDCCR = parts[7];
-
-        return result;
-    }
-    public static TransactionResult ProcessOtherTransaction(string line)
-    {
-        var result = new TransactionResult();
-        var keywords = new[] { "FEE COL CR", "FEE COL DR" };
-
-        var matchingKeyword = keywords.FirstOrDefault(line.Contains);
-        int keywordStart = line.IndexOf(matchingKeyword);
-        int codeStart = keywordStart + matchingKeyword.Length;
-
-        string beforeKeyword = line.Substring(0, keywordStart).Trim();
-
-        var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        result.TransactionFunction = beforeKeyword;
-        result.Proc = matchingKeyword;
-        result.Code = parts[0];
-        result.Count = parts[1];
-        result.ReconAmount = parts[2];
-        result.ReconDCCR = parts[3];
-        result.Currency = parts[4];
-        result.TransferFee = parts[5];
-        result.TransferFeeDCCR = parts[6];
-
-        return result;
-    }
-
     public static TransactionResult ProcessIssuingTransaction(string line)
     {
         var result = new TransactionResult();
-        var keywords = new[] { "FEE COL CR", "FEE COL DR", "PURCHASE" };
+        var keywords = new[] { "FEE COL CR", "FEE COL DR", "PURCHASE", "CREDIT" };
 
-        var matchingKeyword = keywords.FirstOrDefault(line.Contains);
-        //System.Diagnostics.Debug.WriteLine(matchingKeyword, "this is keyword...");
+        var matchingKeyword = keywords.FirstOrDefault(keyword => line.Contains(keyword));
+        if (string.IsNullOrEmpty(matchingKeyword))
+        {
+            //System.Diagnostics.Debug.WriteLine("No matching keyword found in line.", "Keyword Check");
+            return null;
+        }
         int keywordStart = line.IndexOf(matchingKeyword);
         int codeStart = keywordStart + matchingKeyword.Length;
 
@@ -203,7 +159,7 @@ public static class FileReadConditionService
         result.TransferFee = parts[5];
         result.TransferFeeDCCR = parts[6];
 
-        if (line.Contains("PURCHASE"))
+        if (line.Contains("PURCHASE") || line.Contains("CREDIT"))
         {
             result.TransactionFunction = beforeKeyword;
             result.Proc = matchingKeyword;
@@ -231,11 +187,21 @@ public static class FileReadConditionService
         int mtiFunctionCodeStart = line.IndexOf("MTI-FUNCTION CODE:") + "MTI-FUNCTION CODE:".Length;
         return line.Substring(mtiFunctionCodeStart).Trim().Split(' ')[0];
     }
-    //public static string ExtractEndOfReport(string line)
-    //{
-    //    int codeStart = line.IndexOf("***") + "***".Length;
-    //    var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-    //    return parts.Length > 0 ? parts[0] : null;
-    //}
+    public static string ExtractEndOfReport(string line)
+    {
+        if(line.Contains("***END OF REPORT***"))
+        {
+            System.Diagnostics.Debug.WriteLine(line, "this is line.....");
+            int codeStart = line.IndexOf("***") + "***".Length;
+            //System.Diagnostics.Debug.WriteLine(codeStart, "this is code Start.......");
+            var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 0)
+            {
+                return parts[0];
+            }
+        }
+
+        return null;
+    }
 }

@@ -18,7 +18,7 @@ namespace MasterCardFileRead.Services
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.StartsWith("1IP"))
+                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
@@ -38,50 +38,50 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileIDEven(line);
                     }
 
-                    if (line.Contains("DESCRIPTION"))
-                    {
-                        isDescriptionFound = true;
-                        continue;
-                    }
+                    //if (line.Contains("DESCRIPTION"))
+                    //{
+                    //    isDescriptionFound = true;
+                    //    continue;
+                    //}
 
-                    if (isDescriptionFound && !string.IsNullOrWhiteSpace(line))
-                    {
-                        if (line.Contains("MESSAGE DETAILS"))
-                        {
-                            break;
-                        }
-                        string[] parts = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length == 1)
-                        {
-                            newErrorDescriptionLine = parts[0];
-                        }
-                        else
-                        {
-                            newErrorDescriptionLine = null;
-                            errorCode = parts[0];
-                            errorDescription = parts[1];
-                            sourceMessage = parts[2];
-                            elementId = parts[3];
-                        }
+                    //if (isDescriptionFound && !string.IsNullOrWhiteSpace(line))
+                    //{
+                    //    if (line.Contains("MESSAGE DETAILS"))
+                    //    {
+                    //        break;
+                    //    }
+                    //    string[] parts = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries);
+                    //    if (parts.Length == 1)
+                    //    {
+                    //        newErrorDescriptionLine = parts[0];
+                    //    }
+                    //    else
+                    //    {
+                    //        newErrorDescriptionLine = null;
+                    //        errorCode = parts[0];
+                    //        errorDescription = parts[1];
+                    //        sourceMessage = parts[2];
+                    //        elementId = parts[3];
+                    //    }
 
-                        if (!string.IsNullOrEmpty(newErrorDescriptionLine))
-                        {
-                            errorDescription = string.Join(" ", errorDescription, newErrorDescriptionLine);
-                            var transaction = new RejectTransactionModel
-                            {
-                                Date = date,
-                                ProcessingMode = processingMode,
-                                MtiFunctionCode = mtiFunctionCode,
-                                FileId = fileId,
-                                ErrorCode = errorCode,
-                                ErrorDescription = errorDescription,
-                                SourceMessage = sourceMessage,
-                                ElementId = elementId
-                            };
+                    //    if (!string.IsNullOrEmpty(newErrorDescriptionLine))
+                    //    {
+                    //        errorDescription = string.Join(" ", errorDescription, newErrorDescriptionLine);
+                    //        var transaction = new RejectTransactionModel
+                    //        {
+                    //            Date = date,
+                    //            ProcessingMode = processingMode,
+                    //            MtiFunctionCode = mtiFunctionCode,
+                    //            FileId = fileId,
+                    //            ErrorCode = errorCode,
+                    //            ErrorDescription = errorDescription,
+                    //            SourceMessage = sourceMessage,
+                    //            ElementId = elementId
+                    //        };
 
-                            rejectTransactionRecords.Add(transaction);
-                        }
-                    }
+                    //        rejectTransactionRecords.Add(transaction);
+                    //    }
+                    //}
                 }
             }
 
@@ -103,7 +103,7 @@ namespace MasterCardFileRead.Services
             };
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.AddHeaders(worksheet, headers);
+            fileParserService.AddHeaders(worksheet, headers, 15);
 
             int rowIndex = 2;
 

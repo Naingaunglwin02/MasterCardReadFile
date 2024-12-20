@@ -4,7 +4,7 @@ using MasterCardFileRead.Services;
 
 public class FileParserService
 {
-    public void AddHeaders(ExcelWorksheet worksheet, string[] headers)
+    public void AddHeaders(ExcelWorksheet worksheet, string[] headers, float fontSize)
     {
         for (int i = 0; i < headers.Length; i++)
         {
@@ -12,10 +12,12 @@ public class FileParserService
         }
 
         // Make the header row bold
-        worksheet.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
+        var headerRange = worksheet.Cells[1, 1, 1, headers.Length];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Font.Size = fontSize;
     }
 
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, List<TransactionModel> posTransactionRecord, string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, string filePath)
 
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -61,9 +63,9 @@ public class FileParserService
             IssuingTransaction issuingTransaction = new IssuingTransaction();
             issuingTransaction.AddIssuingDataToExcel(issuingTransactionSheet, filteredIssuingRecord);
 
-            var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
-            RejectTransaction rejectTransaction = new RejectTransaction();
-            rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
+            //var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
+            //RejectTransaction rejectTransaction = new RejectTransaction();
+            //rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
 
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);

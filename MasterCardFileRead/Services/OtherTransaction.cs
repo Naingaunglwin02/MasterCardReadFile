@@ -12,11 +12,11 @@ namespace MasterCardFileRead.Services
             using (var reader = new StreamReader(filePath))
             {
                 string line;
-                string date = null, memberID = null, cycle = null, fileId = null;
+                string date = null, memberID = null, cycle = null, fileId = null, endOfReport = null;
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.StartsWith("1IP"))
+                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
@@ -36,31 +36,38 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
 
-                    if (line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
+                    //if (line.Contains("***END OF REPORT***"))
+                    //{
+                    //    endOfReport = FileReadConditionService.ExtractEndOfReport(line);
+                    //}
+
+
+                    //if (line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
+                    //{
+                    var otherTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
+
+                    if (otherTransactionResult != null)
                     {
-                        var otherTransactionResult = FileReadConditionService.ProcessOtherTransaction(line);
-
-                        if (otherTransactionResult != null)
+                        var transaction = new TransactionModel
                         {
-                            var transaction = new TransactionModel
-                            {
-                                Date = date,
-                                MemberID = memberID,
-                                Cycle = cycle,
-                                Proc = otherTransactionResult.Proc,
-                                FileId = fileId,
-                                TranscFunction = otherTransactionResult.TransactionFunction,
-                                Code = otherTransactionResult.Code,
-                                Count = otherTransactionResult.Count,
-                                ReconAmount = otherTransactionResult.ReconAmount,
-                                ReconDCCR = otherTransactionResult.ReconDCCR,
-                                Currency = otherTransactionResult.Currency,
-                                TransferFee = otherTransactionResult.TransferFee,
-                                TransferFeeDCCR = otherTransactionResult.TransferFeeDCCR
-                            };
+                            Date = date,
+                            MemberID = memberID,
+                            Cycle = cycle,
+                            Proc = otherTransactionResult.Proc,
+                            FileId = fileId,
+                            TranscFunction = otherTransactionResult.TransactionFunction,
+                            Code = otherTransactionResult.Code,
+                            Count = otherTransactionResult.Count,
+                            ReconAmount = otherTransactionResult.ReconAmount,
+                            ReconDCCR = otherTransactionResult.ReconDCCR,
+                            Currency = otherTransactionResult.Currency,
+                            TransferFee = otherTransactionResult.TransferFee,
+                            TransferFeeDCCR = otherTransactionResult.TransferFeeDCCR,
+                            //EndOfReport = endOfReport
+                        };
 
-                            otherTransactionRecords.Add(transaction);
-                        }
+                        otherTransactionRecords.Add(transaction);
+                        //}
                     }
 
                     //if (line.Contains("***END OF REPORT***"))
@@ -96,19 +103,20 @@ namespace MasterCardFileRead.Services
 
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.AddHeaders(worksheet, headers);
+            fileParserService.AddHeaders(worksheet, headers, 15);
 
             int rowIndex = 2;
+            string previousDate = null;
 
             // Add data
             foreach (var record in otherTransactionRecords)
-            { 
-                if (record.EndOfReport == "END")
+            {
+                if (previousDate != null && record.Date != previousDate)
                 {
-                    // Insert a blank row
-                    rowIndex++;
-                    continue;
+                    rowIndex += 2;
                 }
+
+                previousDate = record.Date;
 
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
                 worksheet.Cells[rowIndex, 2].Value = record.Date;

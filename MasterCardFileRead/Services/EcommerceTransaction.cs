@@ -17,7 +17,7 @@ namespace MasterCardFileRead.Services
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.StartsWith("1IP"))
+                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
@@ -38,38 +38,31 @@ namespace MasterCardFileRead.Services
 
                     }
 
-                    if (line.Contains("PURCHASE"))
+                    var ecommerceTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
+
+                    if (ecommerceTransactionResult != null)
                     {
-                        var ecommerceTransactionResult = FileReadConditionService.ProcessEcommerceTransaction(line);
-
-                        if (ecommerceTransactionResult != null)
+                        var transaction = new TransactionModel
                         {
-                            var transaction = new TransactionModel
-                            {
-                                Date = date,
-                                MemberID = memberID,
-                                Cycle = cycle,
-                                Proc = ecommerceTransactionResult.Proc,
-                                FileId = fileId,
-                                TranscFunction = ecommerceTransactionResult.TransactionFunction,
-                                Code = ecommerceTransactionResult.Code,
-                                Ird = ecommerceTransactionResult.IrdValues,
-                                Count = ecommerceTransactionResult.Count,
-                                ReconAmount = ecommerceTransactionResult.ReconAmount,
-                                ReconDCCR = ecommerceTransactionResult.ReconDCCR,
-                                Currency = ecommerceTransactionResult.Currency,
-                                TransferFee = ecommerceTransactionResult.TransferFee,
-                                TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR
-                            };
+                            Date = date,
+                            MemberID = memberID,
+                            Cycle = cycle,
+                            Proc = ecommerceTransactionResult.Proc,
+                            FileId = fileId,
+                            TranscFunction = ecommerceTransactionResult.TransactionFunction,
+                            Code = ecommerceTransactionResult.Code,
+                            Ird = ecommerceTransactionResult.IrdValues,
+                            Count = ecommerceTransactionResult.Count,
+                            ReconAmount = ecommerceTransactionResult.ReconAmount,
+                            ReconDCCR = ecommerceTransactionResult.ReconDCCR,
+                            Currency = ecommerceTransactionResult.Currency,
+                            TransferFee = ecommerceTransactionResult.TransferFee,
+                            TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR,
+                        };
 
-                            ecommerceTransactionRecords.Add(transaction);
-                        }
+                        ecommerceTransactionRecords.Add(transaction);
                     }
 
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    break;
-                    //}
                 }
             }
 
@@ -97,18 +90,27 @@ namespace MasterCardFileRead.Services
             };
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.AddHeaders(worksheet, headers);
+            fileParserService.AddHeaders(worksheet, headers, 15);
 
             int rowIndex = 2;
+
+            string previousDate = null;
+            int totalCount = 0;
 
             // Add data
             foreach (var record in ecommerceTransactionRecords)
             {
-                if (record.EndOfReport == "END")
+                if (previousDate != null && record.Date != previousDate)
                 {
-                    // Insert a blank row
-                    rowIndex++;
-                    continue;
+                    //rowIndex++;
+                    worksheet.Cells[rowIndex, 3].Value = "Total";
+                    worksheet.Cells[rowIndex, 9].Value = totalCount;
+                    
+
+                    // Reset the totalCount for the new date
+                    totalCount = 0;
+
+                    rowIndex += 2;
                 }
 
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
@@ -127,10 +129,19 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
 
 
-                // Wrap text for multiple-line values
+                totalCount += Int32.Parse(record.Count);
+
+
                 worksheet.Cells.AutoFitColumns();
 
+                previousDate = record.Date;
                 rowIndex++;
+            }
+
+            if (previousDate != null)
+            {
+                worksheet.Cells[rowIndex, 3].Value = "Total";
+                worksheet.Cells[rowIndex, 9].Value = totalCount;
             }
         }
     }

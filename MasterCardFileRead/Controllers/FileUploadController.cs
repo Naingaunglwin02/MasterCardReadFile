@@ -67,12 +67,12 @@ public class FileUploadController : ControllerBase
                 allSections.AddRange(sections);
                 allSectionsFee.AddRange(sectionsFee);
                 issuingTransactionSection.AddRange(sectionIssuingTransaction);
-                rejectTransactionSection.AddRange(sectionRejectTransaction);
+                //rejectTransactionSection.AddRange(sectionRejectTransaction);
                 allSectionsPos.AddRange(sectionsPos);
             }
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, rejectTransactionSection, allSectionsPos, excelPath);
+            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, allSectionsPos, excelPath);
 
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
