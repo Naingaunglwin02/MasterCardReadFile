@@ -45,17 +45,17 @@ public class FileParserService
                   FileReadConditionService.ExtractFileIDOdd(record.FileId) != null).ToList();
 
 
-            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
+            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Ecommerce");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
 
 
-            var posTransactionSheet = package.Workbook.Worksheets.Add("Pos Transaction");
+            var posTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Transaction");
             PosTransaction posTransaction = new PosTransaction();
             posTransaction.AddDataToSheet(posTransactionSheet, filteredPosRecord);
 
             // Add Summary sheet
-            var otherTransactionSheet = package.Workbook.Worksheets.Add("Other Transaction");
+            var otherTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Others");
             OtherTransaction otherTransaction = new OtherTransaction();
             otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, filteredOtherRecord);
 

@@ -113,12 +113,64 @@ namespace MasterCardFileRead.Services
 
             int rowIndex = 2;
             string previousDate = null;
+            int totalCount = 0;
+            double totalRecon = 0;
+            double totalTransFee = 0;
+            string totalCr = "";
+            string totalDr = "";
 
             // Add data
             foreach (var record in posTransactionRecords)
             {
                 if (previousDate != null && record.Date != previousDate)
                 {
+
+                    //new
+                    worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
+                    worksheet.Cells[rowIndex, 1].Value = "Total";
+
+                    worksheet.Cells[rowIndex, 9].Value = totalCount;
+                    worksheet.Cells[rowIndex, 10].Value = totalRecon;
+                    worksheet.Cells[rowIndex, 11].Value = record.ReconDCCR;
+
+                    worksheet.Cells[rowIndex, 13].Value = totalTransFee;
+                    worksheet.Cells[rowIndex, 14].Value = totalDr;
+
+                    using (var range = worksheet.Cells[rowIndex, 1, rowIndex, 14])
+                    {
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                        range.Style.Font.Bold = true;
+
+                        // Center-align the "Total" text in the merged cells (columns 1 to 8)
+                        worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                        worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                        // Write the Total Count in column 9 and left-align it
+                        worksheet.Cells[rowIndex, 9].Value = totalCount;
+                        worksheet.Cells[rowIndex, 9].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                        worksheet.Cells[rowIndex, 10].Value = totalRecon;
+                        worksheet.Cells[rowIndex, 10].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                        worksheet.Cells[rowIndex, 13].Value = totalTransFee;
+                        worksheet.Cells[rowIndex, 13].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                        worksheet.Cells[rowIndex, 11].Value = totalCr;
+                        worksheet.Cells[rowIndex, 11].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                        worksheet.Cells[rowIndex, 14].Value = totalDr;
+                        worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                    }
+
+                    totalCount = 0;
+                    totalRecon = 0;
+                    totalTransFee = 0;
+                    totalCr = "";
+                    totalDr = "";
+                    
+                    //
                     rowIndex += 2;
                 }
 
@@ -139,10 +191,63 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 13].Value = record.TransferFee;
                 worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
 
+
+                //new
+                totalCount += Int32.Parse(record.Count);
+                //totalRecon += Int32.Parse(record.ReconAmount);
+                totalRecon += Convert.ToDouble(record.ReconAmount);
+                totalTransFee += Convert.ToDouble(record.TransferFee);
+                totalCr = record.ReconDCCR;
+                totalDr = record.TransferFeeDCCR;
+
+                //
+
                 // Wrap text for multiple-line values
                 worksheet.Cells.AutoFitColumns();
 
+                previousDate = record.Date;
+
                 rowIndex++;
+            }
+
+            if (previousDate != null)
+            {
+
+                worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
+                worksheet.Cells[rowIndex, 1].Value = "Total";
+
+                worksheet.Cells[rowIndex, 9].Value = totalCount;
+
+                // Apply gray background and bold font to the final "Total" row
+                using (var range = worksheet.Cells[rowIndex, 1, rowIndex, 14])
+                {
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    range.Style.Font.Bold = true;
+
+                    // Center-align the "Total" text in the merged cells (columns 1 to 8)
+                    worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    // Write the Total Count in column 9 and left-align it
+                    worksheet.Cells[rowIndex, 9].Value = totalCount;
+                    worksheet.Cells[rowIndex, 9].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                    worksheet.Cells[rowIndex, 10].Value = totalRecon;
+                    worksheet.Cells[rowIndex, 10].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                    worksheet.Cells[rowIndex, 13].Value = totalTransFee;
+                    worksheet.Cells[rowIndex, 13].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                    worksheet.Cells[rowIndex, 11].Value = totalCr;
+                    worksheet.Cells[rowIndex, 11].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+                    worksheet.Cells[rowIndex, 14].Value = totalDr;
+                    worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
+
+                }
+
             }
         }
     }
