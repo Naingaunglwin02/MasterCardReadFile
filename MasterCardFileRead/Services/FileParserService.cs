@@ -17,8 +17,7 @@ public class FileParserService
         headerRange.Style.Font.Size = fontSize;
     }
 
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, string filePath)
-
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -44,6 +43,10 @@ public class FileParserService
                   !string.IsNullOrEmpty(record.FileId) &&
                   FileReadConditionService.ExtractFileIDOdd(record.FileId) != null).ToList();
 
+            //var filteredRejectRecord = rejectTransactionRecord
+            //    .Where(record =>
+            //     !string.IsNullOrEmpty(record.ProcessingMode) && !string.IsNullOrEmpty(record.MtiFunctionCode)).ToList();
+
 
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
@@ -63,9 +66,9 @@ public class FileParserService
             IssuingTransaction issuingTransaction = new IssuingTransaction();
             issuingTransaction.AddIssuingDataToExcel(issuingTransactionSheet, filteredIssuingRecord);
 
-            //var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
-            //RejectTransaction rejectTransaction = new RejectTransaction();
-            //rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
+            var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
+            RejectTransaction rejectTransaction = new RejectTransaction();
+            rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
 
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);

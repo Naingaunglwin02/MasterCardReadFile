@@ -36,14 +36,6 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
 
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    endOfReport = FileReadConditionService.ExtractEndOfReport(line);
-                    //}
-
-
-                    //if (line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
-                    //{
                     var otherTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
 
                     if (otherTransactionResult != null)
@@ -63,17 +55,10 @@ namespace MasterCardFileRead.Services
                             Currency = otherTransactionResult.Currency,
                             TransferFee = otherTransactionResult.TransferFee,
                             TransferFeeDCCR = otherTransactionResult.TransferFeeDCCR,
-                            //EndOfReport = endOfReport
                         };
 
                         otherTransactionRecords.Add(transaction);
-                        //}
                     }
-
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    break;
-                    //}
                 }
             }
 

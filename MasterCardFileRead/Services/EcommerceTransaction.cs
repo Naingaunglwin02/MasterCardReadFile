@@ -106,7 +106,6 @@ namespace MasterCardFileRead.Services
                     worksheet.Cells[rowIndex, 3].Value = "Total";
                     worksheet.Cells[rowIndex, 9].Value = totalCount;
                     
-
                     // Reset the totalCount for the new date
                     totalCount = 0;
 

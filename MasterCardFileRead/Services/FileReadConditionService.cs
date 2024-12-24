@@ -1,6 +1,7 @@
 ﻿using MasterCardFileRead.Models;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.IO;
 
 public static class FileReadConditionService
 {
@@ -51,7 +52,7 @@ public static class FileReadConditionService
             string candidateFileId = parts[0];
 
             var segments = candidateFileId.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-           
+
             if (segments.Length > 0)
             {
                 string lastSegment = segments[^1];
@@ -69,7 +70,7 @@ public static class FileReadConditionService
         int fileIdStart = line.IndexOf("FILE ID:") + "FILE ID:".Length;
         var parts = line.Substring(fileIdStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         string lastPart = parts[^1]; // Gets the last part after the last '/'
-       
+
         if (parts.Length > 0)
         {
 
@@ -79,7 +80,7 @@ public static class FileReadConditionService
 
                 string candidateFileId = parts[0];
                 var segments = candidateFileId.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-               
+
                 if (segments.Length > 0)
                 {
                     string lastSegment = segments[^1];
@@ -90,8 +91,8 @@ public static class FileReadConditionService
                 }
             }
         }
-      
-        return null; 
+
+        return null;
     }
 
     public static string ExtractFileIDEven(string line)
@@ -188,20 +189,41 @@ public static class FileReadConditionService
         return line.Substring(mtiFunctionCodeStart).Trim().Split(' ')[0];
     }
 
-    public static string ExtractEndOfReport(string line)
+    public static string ExtractResourceMessage(string line)
     {
-        if(line.Contains("***END OF REPORT***"))
-        {
-            System.Diagnostics.Debug.WriteLine(line, "this is line.....");
-            int codeStart = line.IndexOf("***") + "***".Length;
-            //System.Diagnostics.Debug.WriteLine(codeStart, "this is code Start.......");
-            var parts = line.Substring(codeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length > 0)
-            {
-                return parts[0];
-            }
-        }
+        int resourceMessageCodeStart = line.IndexOf("SOURCE MESSAGE #:") + "SOURCE MESSAGE #:".Length;
+        return line.Substring(resourceMessageCodeStart).Trim().Split(' ')[0];
+    }
 
-        return null;
+    public static string ExtractD0002(string line)
+    {
+        int cardNumberCodeStart = line.IndexOf("D0002") + "D0002".Length;
+        var parts = line.Substring(cardNumberCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+       
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractD0026(string line)
+    {
+        int mccCodeStart = line.IndexOf("D0026") + "D0026".Length;
+        var parts = line.Substring(mccCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractD0037(string line)
+    {
+        int rrnCodeStart = line.IndexOf("D0037") + "D0037".Length;
+        var parts = line.Substring(rrnCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractD0038(string line)
+    {
+        int authCodeStart = line.IndexOf("D0038") + "D0038".Length;
+        var parts = line.Substring(authCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length >= 1 ? parts[0] : null;
     }
 }

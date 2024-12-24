@@ -36,14 +36,6 @@ namespace MasterCardFileRead.Services
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
 
-                    if (line.Contains("***END OF REPORT***"))
-                    {
-                        endOfReport = FileReadConditionService.ExtractEndOfReport(line);
-                        System.Diagnostics.Debug.WriteLine(endOfReport, "this is end of report.....");
-                    }
-
-                    //if (line.Contains("PURCHASE") || line.Contains("FEE COL CR") || line.Contains("FEE COL DR"))
-                    //{
                     var ecommerceTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
 
                     if (ecommerceTransactionResult != null)
@@ -64,17 +56,10 @@ namespace MasterCardFileRead.Services
                             Currency = ecommerceTransactionResult.Currency,
                             TransferFee = ecommerceTransactionResult.TransferFee,
                             TransferFeeDCCR = ecommerceTransactionResult.TransferFeeDCCR,
-                            //EndOfReport = endOfReport
                         };
 
                         issuingTransactionRecords.Add(transaction);
-                        //}
                     }
-
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    break;
-                    //}
                 }
             }
 
@@ -109,14 +94,6 @@ namespace MasterCardFileRead.Services
             // Add data
             foreach (var record in ecommerceTransactionRecords)
             {
-                //System.Diagnostics.Debug.WriteLine(record.Count, "this is count......");
-                //if (record.EndOfReport == "END")
-                //{
-                //    // Insert a blank row
-                //    rowIndex++;
-                //    continue;
-                //}
-
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
                 worksheet.Cells[rowIndex, 2].Value = record.Date;
                 worksheet.Cells[rowIndex, 3].Value = record.FileId;

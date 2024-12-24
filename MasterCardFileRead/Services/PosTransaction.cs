@@ -35,22 +35,8 @@ namespace MasterCardFileRead.Services
                     if (line.Contains("FILE ID:"))
                     {
                         fileId = FileReadConditionService.ExtractFileID(line);
-
-                        //fileId = result;
-                        ////System.Diagnostics.Debug.WriteLine(fileId, "this is fileId.....");
-                        //if (!string.IsNullOrEmpty(result))
-                        //{
-                        //    //System.Diagnostics.Debug.WriteLine(result, "this is result.....");
-                        //}
                     }
 
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    endOfReport = FileReadConditionService.ExtractEndOfReport(line);
-                    //}
-
-                    //if (line.Contains("PURCHASE"))
-                    //{
                     var posTransactionResult = FileReadConditionService.ProcessIssuingTransaction(line);
 
                     if (posTransactionResult != null)
@@ -71,17 +57,10 @@ namespace MasterCardFileRead.Services
                             Currency = posTransactionResult.Currency,
                             TransferFee = posTransactionResult.TransferFee,
                             TransferFeeDCCR = posTransactionResult.TransferFeeDCCR,
-                            //EndOfReport = endOfReport
                         };
 
                         posTransactionRecords.Add(transaction);
                     }
-                    //}
-
-                    //if (line.Contains("***END OF REPORT***"))
-                    //{
-                    //    break;
-                    //}
                 }
             }
 
