@@ -222,10 +222,6 @@ namespace MasterCardFileRead.Services
                     worksheet.Cells[rowIndex, 14].Value = totalDr;
                     worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
-
-
-
-
                 }
 
             }
