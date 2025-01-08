@@ -108,8 +108,7 @@ namespace MasterCardFileRead.Services
                 {
                     //rowIndex++;
                     //worksheet.Cells[rowIndex, 3].Value = "Total";
-
-                    worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
+                    worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;      
                     worksheet.Cells[rowIndex, 1].Value = "Total";
 
                     worksheet.Cells[rowIndex, 9].Value = totalCount;
@@ -157,8 +156,6 @@ namespace MasterCardFileRead.Services
 
                     rowIndex += 2;
                 }
-
-                //System.Diagnostics.Debug.WriteLine("Hello");
 
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
                 worksheet.Cells[rowIndex, 2].Value = record.Date;
@@ -225,6 +222,7 @@ namespace MasterCardFileRead.Services
 
                     worksheet.Cells[rowIndex, 14].Value = totalDr;
                     worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+
                 }
 
             }
