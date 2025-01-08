@@ -102,17 +102,8 @@ namespace MasterCardFileRead.Services
             // Add data
             foreach (var record in ecommerceTransactionRecords)
             {
-				/System.Diagnostics.Debug.WriteLine(record.Count, "this is count......");
-                //if (record.EndOfReport == "END")
-                //{
-                //    // Insert a blank row
-                //    rowIndex++;
-                //    continue;
-                //}
                 if (previousCycle != null && record.Cycle != previousCycle)
                 {
-                    //rowIndex++;
-                    //worksheet.Cells[rowIndex, 3].Value = "Total";
                     //new
                     worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
                     worksheet.Cells[rowIndex, 1].Value = "Total";
