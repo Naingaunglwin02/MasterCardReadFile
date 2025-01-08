@@ -50,24 +50,45 @@
 
     public class RejectTransactionModel
     {
-        //public string? Date { get; set; }
+        public string? Date { get; set; }
         public string? ProcessingMode { get; set; }
         public string? MtiFunctionCode { get; set; }
         public string? FileId { get; set; }
-        public List<string>? ErrorCode { get; set; }
-        public List<string>? ErrorDescription { get; set; }
+
         public string? SourceMessage { get; set; }
-        public List<string>? ElementId { get; set; }
+
         public string? CardNumberD0002 { get; set; }
         public string? MccCodeD0026 { get; set; }
         public string? RrnD0037 { get; set; }
         public string? AuthCodeD0038 { get; set; }
-        //public string? TerminalId { get; set; }
-        //public string? MerchantIdD0042 { get; set; }
-        //public string? MerchantNameD0043S01 { get; set; }
-        //public string? IrdP0158S04 { get; set; }
-        //public string? SourceAmount { get; set; }
-        //public string? SourceCurrency { get; set; }
+        public string? TerminalIdD0041 { get; set; }
+        public string? MerchantIdD0042 { get; set; }
+        public string? MerchantNameD0043S01 { get; set; }
+        public string? IrdP0158S04 { get; set; }
+        public string? SourceAmount { get; set; }
+        public string? SourceCurrency { get; set; }
 
+        public List<string>? ErrorCode { get; set; }
+        public List<string>? ErrorDescription { get; set; }
+
+        public List<string>? ElementId { get; set; }
+
+    }
+
+    public class RejectTransactionDescriptionModel
+    {
+        public List<string>? ErrorCode { get; set; }
+        public string? ErrorDescription { get; set; }
+
+        public List<string>? ElementId { get; set; }
+
+        public string? SourceMessage { get; set; }
+    }
+
+    public class ErrorDescriptionModel
+    {
+        public List<string> ErrorCode = new List<string>();
+        public List<string> Description = new List<string>();
+        public List<string> ElementId = new List<string>();
     }
 }

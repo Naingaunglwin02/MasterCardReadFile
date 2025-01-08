@@ -37,10 +37,13 @@ public class FileUploadController : ControllerBase
         var allSectionsFee = new List<TransactionModel>();
         var issuingTransactionSection = new List<TransactionModel>();
         var rejectTransactionSection = new List<RejectTransactionModel>();
+        var rejectTransactionDescriptionSection = new Dictionary<string, ErrorDescriptionModel>();
         var allSectionsPos = new List<TransactionModel>();
 
         var tempFiles = new List<string>();
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
+
+        Dictionary<string, ErrorDescriptionModel> sectionDescriptionRejectTransaction = new();
 
         try
         {
@@ -64,6 +67,23 @@ public class FileUploadController : ControllerBase
                 var sectionIssuingTransaction = _issuingTransaction.IssuingTransactionService(tempFilePath);
                 var sectionRejectTransaction = _rejectTransaction.RejectTransactionService(tempFilePath);
 
+                // Populate `sectionDescriptionRejectTransaction` by merging or appending entries
+                var tempDescriptionRejectTransaction = _rejectTransaction.RejectTransactionDescriptionService(tempFilePath);
+
+                foreach (var kvp in tempDescriptionRejectTransaction)
+                {
+                    if (sectionDescriptionRejectTransaction.TryGetValue(kvp.Key, out var existingModel))
+                    {
+                        existingModel.ErrorCode.AddRange(kvp.Value.ErrorCode);
+                        existingModel.Description.AddRange(kvp.Value.Description);
+                        existingModel.ElementId.AddRange(kvp.Value.ElementId);
+                    }
+                    else
+                    {
+                        sectionDescriptionRejectTransaction[kvp.Key] = kvp.Value;
+                    }
+                }
+
                 allSections.AddRange(sections);
                 allSectionsFee.AddRange(sectionsFee);
                 issuingTransactionSection.AddRange(sectionIssuingTransaction);
@@ -72,8 +92,7 @@ public class FileUploadController : ControllerBase
             }
 
             FileParserService fileParserService = new FileParserService();
-            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, allSectionsPos, rejectTransactionSection, excelPath);
-
+            fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, allSectionsPos, rejectTransactionSection, sectionDescriptionRejectTransaction, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
 

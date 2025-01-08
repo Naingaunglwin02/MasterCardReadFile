@@ -17,7 +17,7 @@ public class FileParserService
         headerRange.Style.Font.Size = fontSize;
     }
 
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, Dictionary<string, ErrorDescriptionModel> rejectTransactinDescriptionRecords, string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -48,17 +48,17 @@ public class FileParserService
             //     !string.IsNullOrEmpty(record.ProcessingMode) && !string.IsNullOrEmpty(record.MtiFunctionCode)).ToList();
 
 
-            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Ecommerce Transaction");
+            var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Ecommerce");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
 
 
-            var posTransactionSheet = package.Workbook.Worksheets.Add("Pos Transaction");
+            var posTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Transaction");
             PosTransaction posTransaction = new PosTransaction();
             posTransaction.AddDataToSheet(posTransactionSheet, filteredPosRecord);
 
             // Add Summary sheet
-            var otherTransactionSheet = package.Workbook.Worksheets.Add("Other Transaction");
+            var otherTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Others");
             OtherTransaction otherTransaction = new OtherTransaction();
             otherTransaction.AddSummaryDataToSheet(otherTransactionSheet, filteredOtherRecord);
 
@@ -68,7 +68,7 @@ public class FileParserService
 
             var rejectTransactionSheet = package.Workbook.Worksheets.Add("Reject");
             RejectTransaction rejectTransaction = new RejectTransaction();
-            rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord);
+            rejectTransaction.AddRejectDataToSheet(rejectTransactionSheet, rejectTransactionRecord, rejectTransactinDescriptionRecords);
 
             FileInfo fileInfo = new FileInfo(filePath);
             package.SaveAs(fileInfo);

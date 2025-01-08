@@ -192,7 +192,15 @@ public static class FileReadConditionService
     public static string ExtractResourceMessage(string line)
     {
         int resourceMessageCodeStart = line.IndexOf("SOURCE MESSAGE #:") + "SOURCE MESSAGE #:".Length;
-        return line.Substring(resourceMessageCodeStart).Trim().Split(' ')[0];
+        string resourceMessage = line.Substring(resourceMessageCodeStart).Trim().Split(' ')[0];
+
+        // Remove only the first leading zero if it exists
+        if (resourceMessage.StartsWith("0"))
+        {
+            resourceMessage = resourceMessage.Substring(1);
+        }
+
+        return resourceMessage;
     }
 
     public static string ExtractD0002(string line)
@@ -226,4 +234,60 @@ public static class FileReadConditionService
 
         return parts.Length >= 1 ? parts[0] : null;
     }
+    public static string ExtractD0041(string line)
+    {
+        int terminalCodeStart = line.IndexOf("D0041") + "D0041".Length;
+        var parts = line.Substring(terminalCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractD0042(string line)
+    {
+        int merchantIdCodeStart = line.IndexOf("D0042") + "D0042".Length;
+        var parts = line.Substring(merchantIdCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractD0043S01(string line)
+    {
+        int merchantNameCodeStart = line.IndexOf("D0043 S01") + "D0043 S01".Length;
+        var parts = line.Substring(merchantNameCodeStart).Trim().Split(new String[] { "  " }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractP0158S04(string line)
+    {
+        int irdCodeStart = line.IndexOf("P0158 S04") + "P0158 S04".Length;
+        var parts = line.Substring(irdCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        //if (parts.Length > 0)
+        //{
+        //    System.Diagnostics.Debug.WriteLine(parts[0], "this is parts....");
+        //}
+        return parts.Length >= 1 ? parts[0] : null;
+    }
+
+    public static string ExtractSourceAmount(string line)
+    {
+        int sourceAmountCodeStart = line.IndexOf("SOURCE AMOUNT:") + "SOURCE AMOUNT:".Length;
+        var parts = line.Substring(sourceAmountCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length > 0 ? parts[0] : null;
+    }
+
+    public static string ExtractSourceCurrency(string line)
+    {
+        int sourceCurrencyCodeStart = line.IndexOf("SOURCE CURRENCY:") + "SOURCE CURRENCY:".Length;
+        var parts = line.Substring(sourceCurrencyCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length > 0 ? parts[0] : null;
+    }
+
+    //public static string ExtractDescription(string line)
+    //{
+    //    int descriptionCodeStart = line.IndexOf("DESCRIPTION") + "DESCRIPTION".Length;
+       
+    //}
 }
