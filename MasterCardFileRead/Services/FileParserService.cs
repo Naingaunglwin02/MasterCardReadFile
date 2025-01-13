@@ -17,7 +17,7 @@ public class FileParserService
         headerRange.Style.Font.Size = fontSize;
     }
 
-    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, Dictionary<string, ErrorDescriptionModel> rejectTransactinDescriptionRecords, string filePath)
+    public void GenerateExcelFile(List<TransactionModel> ecommerceTransactionRecord, List<TransactionModel> otherTransactionRecord, List<TransactionModel> issuingTransactionRecord, List<TransactionModel> posTransactionRecord, List<RejectTransactionModel> rejectTransactionRecord, Dictionary<CompositeKey, ErrorDescriptionModel> rejectTransactinDescriptionRecords, string filePath)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -27,33 +27,39 @@ public class FileParserService
             var filteredEcommerceRecord = ecommerceTransactionRecord
                 .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
                   !string.IsNullOrEmpty(record.FileId) &&
-                  FileReadConditionService.ExtractFileIDEven(record.FileId) != null).ToList();
+                  FileReadConditionService.ExtractFileIDEven(record.FileId) != null)
+                .OrderBy(record => record.Date)
+                .ThenBy(record => record.Cycle)
+                .ToList();
 
             var filteredOtherRecord = otherTransactionRecord
                 .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
                   !string.IsNullOrEmpty(record.FileId) &&
-                  FileReadConditionService.ExtractFileIDForOtherTransaction(record.FileId) != null).ToList();
+                  FileReadConditionService.ExtractFileIDForOtherTransaction(record.FileId) != null)
+                .OrderBy(record => record.Date)
+                .ThenBy(record => record.Cycle)
+                .ToList();
 
             var filteredIssuingRecord = issuingTransactionRecord
-                .Where(record => record.MemberID?.Contains("00000014688", StringComparison.OrdinalIgnoreCase) == true).ToList();
-
+                .Where(record => record.MemberID?.Contains("00000014688", StringComparison.OrdinalIgnoreCase) == true)
+                .OrderBy(record => record.Date)
+                .ThenBy(record => record.Cycle)
+                .ToList();
+                
             var filteredPosRecord = posTransactionRecord
                 .Where(record =>
                   record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
                   !string.IsNullOrEmpty(record.FileId) &&
-                  FileReadConditionService.ExtractFileIDOdd(record.FileId) != null).ToList();
-
-            //var filteredRejectRecord = rejectTransactionRecord
-            //    .Where(record =>
-            //     !string.IsNullOrEmpty(record.ProcessingMode) && !string.IsNullOrEmpty(record.MtiFunctionCode)).ToList();
-
+                  FileReadConditionService.ExtractFileIDOdd(record.FileId) != null)
+                .OrderBy(record => record.Date)
+                .ThenBy(record => record.Cycle)
+                .ToList();
 
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Ecommerce");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
 
-
-            var posTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Transaction");
+            var posTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_POS");
             PosTransaction posTransaction = new PosTransaction();
             posTransaction.AddDataToSheet(posTransactionSheet, filteredPosRecord);
 

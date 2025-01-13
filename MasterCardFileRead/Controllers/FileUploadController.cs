@@ -30,7 +30,15 @@ public class FileUploadController : ControllerBase
     {
         if (files == null || files.Count == 0)
         {
-            return BadRequest("No files were uploaded.");
+            return BadRequest(new { message = "No files were uploaded." });
+        }
+
+        foreach (var file in files)
+        {
+            if (!file.FileName.EndsWith(".001", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { message = $"Invalid file type: {file.FileName}. Only .001 files are allowed." });
+            }
         }
 
         var allSections = new List<TransactionModel>();
@@ -43,7 +51,7 @@ public class FileUploadController : ControllerBase
         var tempFiles = new List<string>();
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
 
-        Dictionary<string, ErrorDescriptionModel> sectionDescriptionRejectTransaction = new();
+        Dictionary<CompositeKey, ErrorDescriptionModel> sectionDescriptionRejectTransaction = new();
 
         try
         {
@@ -95,9 +103,6 @@ public class FileUploadController : ControllerBase
             fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, allSectionsPos, rejectTransactionSection, sectionDescriptionRejectTransaction, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
-
-            allSectionsFee.Clear();
-            allSectionsPos.Clear();
 
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "result.xlsx");
         }

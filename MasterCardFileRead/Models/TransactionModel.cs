@@ -74,21 +74,30 @@
         public List<string>? ElementId { get; set; }
 
     }
-
-    public class RejectTransactionDescriptionModel
-    {
-        public List<string>? ErrorCode { get; set; }
-        public string? ErrorDescription { get; set; }
-
-        public List<string>? ElementId { get; set; }
-
-        public string? SourceMessage { get; set; }
-    }
-
     public class ErrorDescriptionModel
     {
         public List<string> ErrorCode = new List<string>();
+
         public List<string> Description = new List<string>();
+
         public List<string> ElementId = new List<string>();
+    }
+
+    public class CompositeKey
+    {
+        public string? SourceMessage { get; set; }
+        public string? Date { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CompositeKey key &&
+                   SourceMessage == key.SourceMessage &&
+                   Date == key.Date;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(SourceMessage, Date);
+        }
     }
 }

@@ -70,89 +70,62 @@ namespace MasterCardFileRead.Services
         {
             string[] headers = new string[]
             {
-                "Transaction Function",
-                "Date",
-                "File ID",
-                "Member ID",
-                "Cycle",
-                "Proc",
-                "Code",
-                "IRD Values",
-                "Count",
-                "Recon Amount",
-                "DC/CR",
-                "Currency",
-                "Transfer Fee",
-                "DC/CR"
+                "TRANS FUNC",
+                "DATE",
+                "FILE ID",
+                "MEMBER ID",
+                "CYCLE",
+                "PROC",
+                "CODE",
+                "IRD",
+                "COUNT",
+                "RECON AMOUNT",
+                "DR/ CR",
+                "CURRENCY",
+                "TRANS FEE",
+                "DR/ CR"
             };
 
             FileParserService fileParserService = new FileParserService();
             fileParserService.AddHeaders(worksheet, headers, 15);
 
             int rowIndex = 2;
-            //new
+
             string previousCycle = null;
+            string previousDate = null;
+
+            // Subtotal variables
             int totalCount = 0;
             double totalRecon = 0;
             double totalTransFee = 0;
             string totalCr = "";
             string totalDr = "";
 
+            // Grand total variables
+            int grandTotalCount = 0;
+            double grandTotalRecon = 0;
+            double grandTotalTransFee = 0;
 
             // Add data
             foreach (var record in ecommerceTransactionRecords)
             {
+                // Add subtotals if the cycle changes
                 if (previousCycle != null && record.Cycle != previousCycle)
                 {
-                    //new
-                    worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
-                    worksheet.Cells[rowIndex, 1].Value = "Total";
-
-                    worksheet.Cells[rowIndex, 9].Value = totalCount;
-                    worksheet.Cells[rowIndex, 10].Value = totalRecon;
-                    worksheet.Cells[rowIndex, 11].Value = record.ReconDCCR;
-
-                    worksheet.Cells[rowIndex, 13].Value = totalTransFee;
-                    worksheet.Cells[rowIndex, 14].Value = totalDr;
-
-                    // Apply gray background and bold font to the final "Total" row
-                    using (var range = worksheet.Cells[rowIndex, 1, rowIndex, 14])
-                    {
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                        range.Style.Font.Bold = true;
-
-                        // Center-align the "Total" text in the merged cells (columns 1 to 8)
-                        worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                        worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
-
-                        // Write the Total Count in column 9 and left-align it
-                        worksheet.Cells[rowIndex, 9].Value = totalCount;
-                        worksheet.Cells[rowIndex, 9].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                        worksheet.Cells[rowIndex, 10].Value = totalRecon;
-                        worksheet.Cells[rowIndex, 10].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                        worksheet.Cells[rowIndex, 13].Value = totalTransFee;
-                        worksheet.Cells[rowIndex, 13].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                        worksheet.Cells[rowIndex, 11].Value = totalCr;
-                        worksheet.Cells[rowIndex, 11].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                        worksheet.Cells[rowIndex, 14].Value = totalDr;
-                        worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                    }
-                    totalCount = 0;
-                    totalRecon = 0;
-                    totalTransFee = 0;
-                    totalCr = "";
-                    totalDr = "";
-
-                    //
+                    TotalTransactions.AddSubtotalRow(worksheet, rowIndex, "Total", totalCount, totalRecon, totalTransFee, totalCr, totalDr);
                     rowIndex += 2;
+                    TotalTransactions.ResetSubtotalVariables(ref totalCount, ref totalRecon, ref totalTransFee, ref totalCr, ref totalDr);
                 }
 
+                // Add grand totals if the date changes
+                if (previousDate != null && record.Date != previousDate)
+                {
+                    TotalTransactions.AddGrandTotalRow(worksheet, rowIndex, "Grand Total", grandTotalCount, grandTotalRecon, grandTotalTransFee);
+                    rowIndex += 2;
+                    TotalTransactions.ResetGrandTotalVariables(ref grandTotalCount, ref grandTotalRecon, ref grandTotalTransFee);
+                }
+
+                // Write transaction data
                 worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
                 worksheet.Cells[rowIndex, 2].Value = record.Date;
                 worksheet.Cells[rowIndex, 3].Value = record.FileId;
@@ -168,59 +141,35 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 13].Value = record.TransferFee;
                 worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
 
-                //new
+                // Update subtotal and grand total variables
                 totalCount += Int32.Parse(record.Count);
-                //totalRecon += Int32.Parse(record.ReconAmount);
                 totalRecon += Convert.ToDouble(record.ReconAmount);
                 totalTransFee += Convert.ToDouble(record.TransferFee);
                 totalCr = record.ReconDCCR;
                 totalDr = record.TransferFeeDCCR;
 
-                // Wrap text for multiple-line values
-                worksheet.Cells.AutoFitColumns();
-                previousCycle = record.Cycle;
+                grandTotalCount += Int32.Parse(record.Count);
+                grandTotalRecon += Convert.ToDouble(record.ReconAmount);
+                grandTotalTransFee += Convert.ToDouble(record.TransferFee);
 
+                previousCycle = record.Cycle;
+                previousDate = record.Date;
                 rowIndex++;
             }
 
+            // Add final subtotals and grand totals
             if (previousCycle != null)
             {
-
-                worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
-                worksheet.Cells[rowIndex, 1].Value = "Total";
-
-                worksheet.Cells[rowIndex, 9].Value = totalCount;
-
-                // Apply gray background and bold font to the final "Total" row
-                using (var range = worksheet.Cells[rowIndex, 1, rowIndex, 14])
-                {
-                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    range.Style.Font.Bold = true;
-
-                    // Center-align the "Total" text in the merged cells (columns 1 to 8)
-                    worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                    worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
-
-                    // Write the Total Count in column 9 and left-align it
-                    worksheet.Cells[rowIndex, 9].Value = totalCount;
-                    worksheet.Cells[rowIndex, 9].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                    worksheet.Cells[rowIndex, 10].Value = totalRecon;
-                    worksheet.Cells[rowIndex, 10].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                    worksheet.Cells[rowIndex, 13].Value = totalTransFee;
-                    worksheet.Cells[rowIndex, 13].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                    worksheet.Cells[rowIndex, 11].Value = totalCr;
-                    worksheet.Cells[rowIndex, 11].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                    worksheet.Cells[rowIndex, 14].Value = totalDr;
-                    worksheet.Cells[rowIndex, 14].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-
-                }
-
+                TotalTransactions.AddSubtotalRow(worksheet, rowIndex, "Total", totalCount, totalRecon, totalTransFee, totalCr, totalDr);
+                rowIndex += 2;
             }
+
+            if (previousDate != null)
+            {
+                TotalTransactions.AddGrandTotalRow(worksheet, rowIndex, "Grand Total", grandTotalCount, grandTotalRecon, grandTotalTransFee);
+                rowIndex += 2;
+            }
+            worksheet.Cells.AutoFitColumns();
         }
     }
 }

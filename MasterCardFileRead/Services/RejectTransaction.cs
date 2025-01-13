@@ -122,20 +122,18 @@ namespace MasterCardFileRead.Services
             return rejectTransactionRecords;
         }
 
-        public Dictionary<string, ErrorDescriptionModel> RejectTransactionDescriptionService(string filePath)
+        public Dictionary<CompositeKey, ErrorDescriptionModel> RejectTransactionDescriptionService(string filePath)
         {
-            var rejectTransactionRecords = new List<RejectTransactionDescriptionModel>();
             string newErrorDescriptionLine = null, errorDescription = null;
-            //string sourceMessage = null;
             bool isDescriptionFound = false;
             bool isMTI = false;
             bool isMessageDetailFound = false;
-
+            string date = null;
             string sourceMessage = null;
             string mtiFunctionCode = null;
 
             Dictionary<string, List<string>> test = new Dictionary<string, List<string>>();
-            Dictionary<string, ErrorDescriptionModel> errorDescriptionModel = new();
+            Dictionary<CompositeKey, ErrorDescriptionModel> errorDescriptionModel = new();
             string errorTemp = null;
             string elementTemp = null;
 
@@ -144,6 +142,10 @@ namespace MasterCardFileRead.Services
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
+                    {
+                        date = FileReadConditionService.ExtractDate(line, ref date);
+                    }
                     if (line.Contains("MTI-FUNCTION CODE: 1240-200"))
                     {
                         isMTI = true;
@@ -189,12 +191,17 @@ namespace MasterCardFileRead.Services
 
                             if (!string.IsNullOrEmpty(sourceMessage))
                             {
-                                if (errorDescriptionModel.TryGetValue(sourceMessage.Trim(), out ErrorDescriptionModel temp))
+                                var compositeKey = new CompositeKey
                                 {
-                                    errorDescriptionModel[sourceMessage.Trim()].ErrorCode.Add(errorTemp);
-                                    errorDescriptionModel[sourceMessage.Trim()].Description.Add(errorDescription + "\n");
-                                    errorDescriptionModel[sourceMessage.Trim()].ElementId.Add(elementTemp);
+                                    SourceMessage = sourceMessage.Trim(),
+                                    Date = date
+                                };
 
+                                if (errorDescriptionModel.TryGetValue(compositeKey, out ErrorDescriptionModel temp))
+                                {
+                                    errorDescriptionModel[compositeKey].ErrorCode.Add(errorTemp);
+                                    errorDescriptionModel[compositeKey].Description.Add(errorDescription + "\n");
+                                    errorDescriptionModel[compositeKey].ElementId.Add(elementTemp);
                                 }
                                 else
                                 {
@@ -202,7 +209,7 @@ namespace MasterCardFileRead.Services
                                     tempModel.ErrorCode.Add(errorTemp);
                                     tempModel.Description.Add(errorDescription + "\n");
                                     tempModel.ElementId.Add(elementTemp);
-                                    errorDescriptionModel[sourceMessage.Trim()] = tempModel;
+                                    errorDescriptionModel[compositeKey] = tempModel;
                                 }
                                 sourceMessage = null;
                             }
@@ -215,29 +222,29 @@ namespace MasterCardFileRead.Services
             return errorDescriptionModel;
         }
 
-        public void AddRejectDataToSheet(ExcelWorksheet worksheet, List<RejectTransactionModel> rejectTransactionRecords, Dictionary<string, ErrorDescriptionModel> rejectTransactionDescriptionRecords)
+        public void AddRejectDataToSheet(ExcelWorksheet worksheet, List<RejectTransactionModel> rejectTransactionRecords, Dictionary<CompositeKey, ErrorDescriptionModel> rejectTransactionDescriptionRecords)
         {
 
             string[] headers = new string[]
             {
-        "Date",
-        "Processing Mode",
-        "MTI Function Code",
-        "File Id",
-        "Error Code",
-        "Error Description",
-        "Source Message",
-        "Element ID",
-        "CARD NUMBER (D0002)",
-        "MCC CODE (D0026)",
-        "RNN (D0037)",
-        "AUTH_CODE (D0038)",
-        "THERMINAL ID (D0041)",
-        "MERCHANT ID (D00420)",
-        "MERCHANT NAME (D0043 S01)",
-        "IRD (P0158 S04)",
-        "SOURCE AMOUNT",
-        "SOURCE CURRENCY",
+                "DATE",
+                "PROCESSING MODE",
+                "MTI-FUNCTION CODE",
+                "FILE ID",
+                "ERROR CODE",
+                "ERROR DESCRIPTION",
+                "SOURCE MESSAGE",
+                "ELEMENT ID",
+                "CARD NUMBER (D0002)",
+                "MCC CODE (D0026)",
+                "RNN (D0037)",
+                "AUTH_CODE (D0038)",
+                "THERMINAL ID (D0041)",
+                "MERCHANT ID (D0042)",
+                "MERCHANT NAME (D0043 S01)",
+                "IRD (P0158 S04)",
+                "SOURCE AMOUNT",
+                "SOURCE CURRENCY",
             };
 
             FileParserService fileParserService = new FileParserService();
@@ -247,35 +254,30 @@ namespace MasterCardFileRead.Services
             string previousDate = null;
             string errorDescription = null;
             double totalSourceAmount = 0;
+            double grandTotalSourceAmount = 0;
 
             foreach (var record in rejectTransactionRecords)
             {
-                var matchingRecords = rejectTransactionDescriptionRecords[record.SourceMessage.Trim()];
+                var compositeKey = new CompositeKey
+                {
+                    SourceMessage = record.SourceMessage.Trim(),
+                    Date = record.Date
+                };
+                var matchingRecords = rejectTransactionDescriptionRecords[compositeKey];
                 // Check if the date has changed to add a total row
 
                 if (previousDate != null && record.Date != previousDate)
                 {
                     // Add total row for the previous date
-                    worksheet.Cells[rowIndex, 1, rowIndex, headers.Length - 2].Merge = true;
-                    worksheet.Cells[rowIndex, 1].Value = "Total";
 
-                    worksheet.Cells[rowIndex, headers.Length - 1].Value = totalSourceAmount;
-                    worksheet.Cells[rowIndex, headers.Length - 1].Style.Numberformat.Format = "#,##0.00";
-
-                    using (var range = worksheet.Cells[rowIndex, 1, rowIndex, headers.Length])
-                    {
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                        range.Style.Font.Bold = true;
-
-                        worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                        worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
-
-                        worksheet.Cells[rowIndex, headers.Length - 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                    }
-
-                    totalSourceAmount = 0;
+                    TotalTransactions.AddSubTotalOfRejectRow(worksheet, rowIndex, "Total", headers, totalSourceAmount);
                     rowIndex += 2;
+                    TotalTransactions.ResetSubtotalRejectVaribles(ref totalSourceAmount);
+
+                    TotalTransactions.AddGrandTotalOfRejectRow(worksheet, rowIndex, "Grand Total", headers, grandTotalSourceAmount);
+                    rowIndex += 2;
+                    TotalTransactions.ResetGrandtoalRejectVariables(ref grandTotalSourceAmount);
+
                 }
 
                 previousDate = record.Date;
@@ -301,38 +303,25 @@ namespace MasterCardFileRead.Services
                 worksheet.Cells[rowIndex, 18].Value = record.SourceCurrency;
 
                 totalSourceAmount += Convert.ToDouble(record.SourceAmount);
+                grandTotalSourceAmount += Convert.ToDouble(record.SourceAmount);
 
                 worksheet.Cells[rowIndex, 5, rowIndex, 8].Style.WrapText = true;
                 worksheet.Cells.AutoFitColumns();
+
                 rowIndex++;
 
             }
             if (previousDate != null)
             {
                 // Add final total row
-                worksheet.Cells[rowIndex, 1, rowIndex, headers.Length - 2].Merge = true;
-                worksheet.Cells[rowIndex, 1].Value = "Total";
+                TotalTransactions.AddSubTotalOfRejectRow(worksheet, rowIndex, "Total", headers, totalSourceAmount);
+                rowIndex += 2;
 
-                worksheet.Cells[rowIndex, headers.Length - 1].Value = totalSourceAmount;
+                TotalTransactions.AddGrandTotalOfRejectRow(worksheet, rowIndex, "Grand Total", headers, grandTotalSourceAmount);
+                rowIndex += 2;
 
-                using (var range = worksheet.Cells[rowIndex, 1, rowIndex, headers.Length])
-                {
-                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    range.Style.Font.Bold = true;
-
-                    worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                    worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
-
-                    worksheet.Cells[rowIndex, headers.Length - 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                    worksheet.Cells[rowIndex, headers.Length - 1].Style.Numberformat.Format = "#,##0.00";
-                }
             }
-            
-            // Auto-fit columns for better readability
-           
+
         }
-
-
     }
 }

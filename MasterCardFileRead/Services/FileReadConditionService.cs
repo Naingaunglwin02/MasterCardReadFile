@@ -7,15 +7,31 @@ public static class FileReadConditionService
 {
     public static string ExtractDate(string line, ref string date)
     {
-        int dateStart = line.IndexOf("BUSINESS SERVICE LEVEL:") + "BUSINESS SERVICE LEVEL:".Length;
-        var parts = line.Substring(dateStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length > 0)
-        {
-            date = parts[1];
-        }
-        var dateOnlyString = DateOnly.Parse(date).ToString("MM/dd/yyyy");
+        // Define the keyword to search for
+        const string keyword = "BUSINESS SERVICE LEVEL:";
+        int dateStart = line.IndexOf(keyword) + keyword.Length;
 
-        return dateOnlyString;
+        // Ensure the keyword exists in the line
+        if (dateStart > keyword.Length - 1)
+        {
+            // Extract substring after the keyword
+            string remainingLine = line.Substring(dateStart).Trim();
+
+            var parts = remainingLine.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var part in parts)
+            {
+                // Check if part is a valid date
+                if (DateOnly.TryParse(part, out DateOnly parsedDate))
+                {
+                    date = part;
+                    return parsedDate.ToString("MM/dd/yyyy");
+                }
+            }
+        }
+
+        date = string.Empty;
+        return string.Empty;
     }
 
     public static string ExtractMemberID(string line)
@@ -135,12 +151,11 @@ public static class FileReadConditionService
     public static TransactionResult ProcessIssuingTransaction(string line)
     {
         var result = new TransactionResult();
-        var keywords = new[] { "FEE COL CR", "FEE COL DR", "PURCHASE", "CREDIT" };
+        var keywords = new[] { "FEE COL CR", "FEE COL DR", "PURCHASE", "CREDIT", "ATM CASH" };
 
         var matchingKeyword = keywords.FirstOrDefault(keyword => line.Contains(keyword));
         if (string.IsNullOrEmpty(matchingKeyword))
         {
-            //System.Diagnostics.Debug.WriteLine("No matching keyword found in line.", "Keyword Check");
             return null;
         }
         int keywordStart = line.IndexOf(matchingKeyword);
@@ -160,7 +175,7 @@ public static class FileReadConditionService
         result.TransferFee = parts[5];
         result.TransferFeeDCCR = parts[6];
 
-        if (line.Contains("PURCHASE") || line.Contains("CREDIT"))
+        if (line.Contains("PURCHASE") || line.Contains("CREDIT") || line.Contains("ATM CASH"))
         {
             result.TransactionFunction = beforeKeyword;
             result.Proc = matchingKeyword;
@@ -207,7 +222,7 @@ public static class FileReadConditionService
     {
         int cardNumberCodeStart = line.IndexOf("D0002") + "D0002".Length;
         var parts = line.Substring(cardNumberCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-       
+
         return parts.Length >= 1 ? parts[0] : null;
     }
 
@@ -215,7 +230,7 @@ public static class FileReadConditionService
     {
         int mccCodeStart = line.IndexOf("D0026") + "D0026".Length;
         var parts = line.Substring(mccCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         return parts.Length >= 1 ? parts[0] : null;
     }
 
@@ -262,10 +277,7 @@ public static class FileReadConditionService
     {
         int irdCodeStart = line.IndexOf("P0158 S04") + "P0158 S04".Length;
         var parts = line.Substring(irdCodeStart).Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        //if (parts.Length > 0)
-        //{
-        //    System.Diagnostics.Debug.WriteLine(parts[0], "this is parts....");
-        //}
+
         return parts.Length >= 1 ? parts[0] : null;
     }
 
@@ -284,10 +296,4 @@ public static class FileReadConditionService
 
         return parts.Length > 0 ? parts[0] : null;
     }
-
-    //public static string ExtractDescription(string line)
-    //{
-    //    int descriptionCodeStart = line.IndexOf("DESCRIPTION") + "DESCRIPTION".Length;
-       
-    //}
 }
