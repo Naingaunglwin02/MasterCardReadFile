@@ -15,7 +15,6 @@ public class FileUploadController : ControllerBase
     private readonly RejectTransaction _rejectTransaction;
     private readonly PosTransaction _posTransaction;
 
-
     public FileUploadController(EcommerceTransaction ecommerceTransaction, OtherTransaction otherTransaction, IssuingTransaction issuingTransaction, RejectTransaction rejectTransaction, PosTransaction posTransaction)
     {
         _ecommerceTransaction = ecommerceTransaction;

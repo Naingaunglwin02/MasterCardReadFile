@@ -3,33 +3,19 @@
     public class TransactionModel
     {
         public string Date { get; set; }
-
         public string? MemberID { get; set; }
-
         public string? FileId { get; set; }
-
         public string? TranscFunction { get; set; }
-
         public string? Ird { get; set; }
-
         public string? Count { get; set; }
-
         public string? ReconAmount { get; set; }
-
         public string? TransferFee { get; set; }
-
         public string? Code { get; set; }
-
         public string? Proc { get; set; }
-
         public string? EndOfReport { get; set; }
-
         public string? Cycle { get; set; }
-
         public string? Currency { get; set; }
-
         public string? ReconDCCR { get; set; }
-
         public string? TransferFeeDCCR { get; set; }
 
     }
@@ -54,9 +40,7 @@
         public string? ProcessingMode { get; set; }
         public string? MtiFunctionCode { get; set; }
         public string? FileId { get; set; }
-
         public string? SourceMessage { get; set; }
-
         public string? CardNumberD0002 { get; set; }
         public string? MccCodeD0026 { get; set; }
         public string? RrnD0037 { get; set; }
@@ -67,12 +51,6 @@
         public string? IrdP0158S04 { get; set; }
         public string? SourceAmount { get; set; }
         public string? SourceCurrency { get; set; }
-
-        public List<string>? ErrorCode { get; set; }
-        public List<string>? ErrorDescription { get; set; }
-
-        public List<string>? ElementId { get; set; }
-
     }
     public class ErrorDescriptionModel
     {
@@ -87,14 +65,12 @@
     {
         public string? SourceMessage { get; set; }
         public string? Date { get; set; }
-
         public override bool Equals(object obj)
         {
             return obj is CompositeKey key &&
                    SourceMessage == key.SourceMessage &&
                    Date == key.Date;
         }
-
         public override int GetHashCode()
         {
             return HashCode.Combine(SourceMessage, Date);

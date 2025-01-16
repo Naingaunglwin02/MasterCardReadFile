@@ -5,35 +5,38 @@ namespace MasterCardFileRead.Services
 {
     public class TotalTransactions
     {
-        public static void AddSubtotalRow(ExcelWorksheet worksheet, int rowIndex, string title, int totalCount, double totalRecon, double totalTransFee, string totalCr, string totalDr)
+        public static void AddSubtotalRow(ExcelWorksheet worksheet, int rowIndex, string title, int totalCount, double subTotal, double subTotalTransfee, string subTotalType, string subTotalTransFeeType)
         {
             worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
             worksheet.Cells[rowIndex, 1].Value = title;
 
             worksheet.Cells[rowIndex, 9].Value = totalCount;
-            worksheet.Cells[rowIndex, 10].Value = totalRecon;
+            worksheet.Cells[rowIndex, 10].Value = subTotal;
             worksheet.Cells[rowIndex, 10].Style.Numberformat.Format = "###0.00";
-            worksheet.Cells[rowIndex, 11].Value = totalCr;
-            worksheet.Cells[rowIndex, 13].Value = totalTransFee;
+            worksheet.Cells[rowIndex, 11].Value = subTotalType;
+            worksheet.Cells[rowIndex, 13].Value = subTotalTransfee;
             worksheet.Cells[rowIndex, 13].Style.Numberformat.Format = "###0.00";
-            worksheet.Cells[rowIndex, 14].Value = totalDr;
+            worksheet.Cells[rowIndex, 14].Value = subTotalTransFeeType;
 
             ApplySubTotalRowStyle(worksheet, rowIndex);
         }
 
-        public static void AddGrandTotalRow(ExcelWorksheet worksheet, int rowIndex, string title, int grandTotalCount, double grandTotalRecon, double grandTotalTransFee)
+        public static void AddGrandTotalRow(ExcelWorksheet worksheet, int rowIndex, string title, int grandTotalCount, double grandTotal, double grandTotalTransFee, string grandTotalType, string grandTotalTransFeeType)
         {
             worksheet.Cells[rowIndex, 1, rowIndex, 8].Merge = true;
             worksheet.Cells[rowIndex, 1].Value = title;
 
             worksheet.Cells[rowIndex, 9].Value = grandTotalCount;
-            worksheet.Cells[rowIndex, 10].Value = grandTotalRecon;
+            worksheet.Cells[rowIndex, 10].Value = grandTotal;
             worksheet.Cells[rowIndex, 10].Style.Numberformat.Format = "###0.00";
+            worksheet.Cells[rowIndex, 11].Value = grandTotalType;
             worksheet.Cells[rowIndex, 13].Value = grandTotalTransFee;
             worksheet.Cells[rowIndex, 13].Style.Numberformat.Format = "###0.00";
+            worksheet.Cells[rowIndex, 14].Value = grandTotalTransFeeType;
 
             ApplyGrandTotalRowStyle(worksheet, rowIndex);
         }
+
 
         public static void AddSubTotalOfRejectRow(ExcelWorksheet worksheet, int rowIndex, string title, string[] headers, double subTotalSourceAmount)
         {
@@ -119,20 +122,22 @@ namespace MasterCardFileRead.Services
             }
         }
 
-        public static void ResetSubtotalVariables(ref int totalCount, ref double totalRecon, ref double totalTransFee, ref string totalCr, ref string totalDr)
+        public static void ResetSubtotalVariables(ref int totalCount, ref double totalCr, ref double totalDr, ref double totalTranCr, ref double totalTranDr)
         {
             totalCount = 0;
-            totalRecon = 0;
-            totalTransFee = 0;
-            totalCr = "";
-            totalDr = "";
+            totalTranCr = 0;
+            totalTranDr = 0;
+            totalCr = 0;
+            totalDr = 0;
         }
 
-        public static void ResetGrandTotalVariables(ref int grandTotalCount, ref double grandTotalRecon, ref double grandTotalTransFee)
+        public static void ResetGrandTotalVariables(ref int grandTotalCount, ref double grandTotalCr, ref double grandTotalDr, ref double grandTotalTransDr, ref double grandTotalTransCr)
         {
             grandTotalCount = 0;
-            grandTotalRecon = 0;
-            grandTotalTransFee = 0;
+            grandTotalTransDr = 0;
+            grandTotalTransCr = 0;
+            grandTotalCr = 0;
+            grandTotalDr = 0;
         }
 
         public static void ResetSubtotalRejectVaribles(ref double sourceAmount)

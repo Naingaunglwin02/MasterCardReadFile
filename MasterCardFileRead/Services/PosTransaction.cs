@@ -67,7 +67,7 @@ namespace MasterCardFileRead.Services
             return posTransactionRecords;
         }
 
-        public void AddDataToSheet(ExcelWorksheet worksheet, List<TransactionModel> posTransactionRecords)
+        public void AddDataToSheet(ExcelWorksheet worksheet, List<TransactionModel> ecommerceTransactionRecords)
         {
             string[] headers = new string[]
             {
@@ -93,88 +93,31 @@ namespace MasterCardFileRead.Services
             int rowIndex = 2;
 
             string previousCycle = null;
-            string currentCycle = null;
             string previousDate = null;
 
-            // Subtotal variables
             int totalCount = 0;
-            double totalRecon = 0;
-            double totalTransFee = 0;
-            string totalCr = "";
-            string totalDr = "";
-
-            // Grand total variables
+            double totalDr = 0, totalCr = 0, totalTranDr = 0, totalTranCr = 0, totalTransFee = 0;
             int grandTotalCount = 0;
-            double grandTotalRecon = 0;
-            double grandTotalTransFee = 0;
+            double grandTotalDr = 0, grandTotalCr = 0, grandTotalTransDr = 0, grandTotalTransCr = 0;
 
-            // Add data
-            foreach (var record in posTransactionRecords)
+            foreach (var record in ecommerceTransactionRecords)
             {
-                // Add subtotals if the cycle changes
-                //if (previousCycle != null && record.Cycle != previousCycle)
-                //{
-                //    TotalTransactions.AddSubtotalRow(worksheet, rowIndex, "Total", totalCount, totalRecon, totalTransFee, totalCr, totalDr);
-                //    rowIndex += 2;
-                //    TotalTransactions.ResetSubtotalVariables(ref totalCount, ref totalRecon, ref totalTransFee, ref totalCr, ref totalDr);
-                //}
-
-                // Add grand totals if the date changes
-                if (previousDate != null && record.Date != previousDate)
+                if (CalculateDrCr.ShouldAddGrandTotals(previousDate, record.Date))
                 {
-                    TotalTransactions.AddSubtotalRow(worksheet, rowIndex, "Total", totalCount, totalRecon, totalTransFee, totalCr, totalDr);
-                    rowIndex += 2;
-                    TotalTransactions.ResetSubtotalVariables(ref totalCount, ref totalRecon, ref totalTransFee, ref totalCr, ref totalDr);
-
-                    TotalTransactions.AddGrandTotalRow(worksheet, rowIndex, "Grand Total", grandTotalCount, grandTotalRecon, grandTotalTransFee);
-                    rowIndex += 2;
-                    TotalTransactions.ResetGrandTotalVariables(ref grandTotalCount, ref grandTotalRecon, ref grandTotalTransFee);
+                    CalculateDrCr.AddSubtotals(worksheet, ref rowIndex, ref totalCount, ref totalDr, ref totalCr, ref totalTranDr, ref totalTranCr, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr);
+                    CalculateDrCr.AddGrandTotals(worksheet, ref rowIndex, grandTotalCount, grandTotalDr, grandTotalCr, grandTotalTransDr, grandTotalTransCr);
+                    TotalTransactions.ResetGrandTotalVariables(ref grandTotalCount, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr);
                 }
 
-                // Write transaction data
-                worksheet.Cells[rowIndex, 1].Value = record.TranscFunction;
-                worksheet.Cells[rowIndex, 2].Value = record.Date;
-                worksheet.Cells[rowIndex, 3].Value = record.FileId;
-                worksheet.Cells[rowIndex, 4].Value = record.MemberID;
-                worksheet.Cells[rowIndex, 5].Value = record.Cycle;
-                worksheet.Cells[rowIndex, 6].Value = record.Proc;
-                worksheet.Cells[rowIndex, 7].Value = record.Code;
-                worksheet.Cells[rowIndex, 8].Value = record.Ird;
-                worksheet.Cells[rowIndex, 9].Value = record.Count;
-                worksheet.Cells[rowIndex, 10].Value = record.ReconAmount;
-                worksheet.Cells[rowIndex, 11].Value = record.ReconDCCR;
-                worksheet.Cells[rowIndex, 12].Value = record.Currency;
-                worksheet.Cells[rowIndex, 13].Value = record.TransferFee;
-                worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
-
-                // Update subtotal and grand total variables
-                totalCount += Int32.Parse(record.Count);
-                totalRecon += Convert.ToDouble(record.ReconAmount);
-                totalTransFee += Convert.ToDouble(record.TransferFee);
-                totalCr = record.ReconDCCR;
-                totalDr = record.TransferFeeDCCR;
-
-                grandTotalCount += Int32.Parse(record.Count);
-                grandTotalRecon += Convert.ToDouble(record.ReconAmount);
-                grandTotalTransFee += Convert.ToDouble(record.TransferFee);
+                CalculateDrCr.WriteTransactionData(worksheet, record, rowIndex, ref totalDr, ref totalCr, ref totalTranDr, ref totalTranCr, ref totalCount, ref grandTotalCount);
 
                 previousCycle = record.Cycle;
                 previousDate = record.Date;
                 rowIndex++;
             }
 
-            // Add final subtotals and grand totals
-            if (previousCycle != null)
-            {
-                TotalTransactions.AddSubtotalRow(worksheet, rowIndex, "Total", totalCount, totalRecon, totalTransFee, totalCr, totalDr);
-                rowIndex += 2;
-            }
+            CalculateDrCr.AddFinalSubtotalsAndGrandTotals(worksheet, ref rowIndex, previousCycle, totalCount, totalDr, totalCr, totalTranDr, totalTranCr, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr, grandTotalCount);
 
-            if (previousDate != null)
-            {
-                TotalTransactions.AddGrandTotalRow(worksheet, rowIndex, "Grand Total", grandTotalCount, grandTotalRecon, grandTotalTransFee);
-                rowIndex += 2;
-            }
             worksheet.Cells.AutoFitColumns();
         }
 

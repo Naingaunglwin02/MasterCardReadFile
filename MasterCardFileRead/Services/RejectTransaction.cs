@@ -132,7 +132,6 @@ namespace MasterCardFileRead.Services
             string sourceMessage = null;
             string mtiFunctionCode = null;
 
-            Dictionary<string, List<string>> test = new Dictionary<string, List<string>>();
             Dictionary<CompositeKey, ErrorDescriptionModel> errorDescriptionModel = new();
             string errorTemp = null;
             string elementTemp = null;
@@ -264,12 +263,10 @@ namespace MasterCardFileRead.Services
                     Date = record.Date
                 };
                 var matchingRecords = rejectTransactionDescriptionRecords[compositeKey];
-                // Check if the date has changed to add a total row
 
                 if (previousDate != null && record.Date != previousDate)
                 {
                     // Add total row for the previous date
-
                     TotalTransactions.AddSubTotalOfRejectRow(worksheet, rowIndex, "Total", headers, totalSourceAmount);
                     rowIndex += 2;
                     TotalTransactions.ResetSubtotalRejectVaribles(ref totalSourceAmount);
@@ -277,7 +274,6 @@ namespace MasterCardFileRead.Services
                     TotalTransactions.AddGrandTotalOfRejectRow(worksheet, rowIndex, "Grand Total", headers, grandTotalSourceAmount);
                     rowIndex += 2;
                     TotalTransactions.ResetGrandtoalRejectVariables(ref grandTotalSourceAmount);
-
                 }
 
                 previousDate = record.Date;

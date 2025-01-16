@@ -169,10 +169,10 @@ public static class FileReadConditionService
         result.Proc = matchingKeyword;
         result.Code = parts[0];
         result.Count = parts[1];
-        result.ReconAmount = parts[2];
+        result.ReconAmount = parts[2] + " " + parts[3];
         result.ReconDCCR = parts[3];
         result.Currency = parts[4];
-        result.TransferFee = parts[5];
+        result.TransferFee = parts[5] + " " + parts[6];
         result.TransferFeeDCCR = parts[6];
 
         if (line.Contains("PURCHASE") || line.Contains("CREDIT") || line.Contains("ATM CASH"))
@@ -182,10 +182,10 @@ public static class FileReadConditionService
             result.Code = parts[0];
             result.IrdValues = parts[1];
             result.Count = parts[2];
-            result.ReconAmount = parts[3];
+            result.ReconAmount = parts[3] + " " + parts[4];
             result.ReconDCCR = parts[4];
             result.Currency = parts[5];
-            result.TransferFee = parts[6];
+            result.TransferFee = parts[6] + " " +  parts[7];
             result.TransferFeeDCCR = parts[7];
         }
 
