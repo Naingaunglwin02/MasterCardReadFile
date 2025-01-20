@@ -12,6 +12,8 @@ namespace MasterCardFileRead.Services
         {
             var ecommerceTransactionRecords = new List<TransactionModel>();
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
             {
                 string line;

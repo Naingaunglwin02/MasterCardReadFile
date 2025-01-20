@@ -19,6 +19,7 @@ namespace MasterCardFileRead.Services
                    mtiFunctionCode = null, sourceMessage = null, cardNumber = null, mccCode = null, rrnCode = null,
                    authCode = null, terminalId = null, merchantId = null, merchantName = null, ird = null, sourceAmount = null, sourceCurrency = null, newErrorDescriptionLine = null;
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             // Lists for error data
             using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
             {
