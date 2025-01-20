@@ -80,6 +80,8 @@ namespace MasterCardFileRead.Services
             worksheet.Cells[rowIndex, 12].Value = record.Currency;
             worksheet.Cells[rowIndex, 14].Value = record.TransferFeeDCCR;
 
+            worksheet.Cells.AutoFitColumns();
+
             ParseAndAccumulateValues(record.ReconAmount, ref totalDr, ref totalCr);
             ParseAndAccumulateValues(record.TransferFee, ref totalTranDr, ref totalTranCr);
 

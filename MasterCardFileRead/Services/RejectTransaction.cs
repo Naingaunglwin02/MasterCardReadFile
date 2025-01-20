@@ -20,11 +20,12 @@ namespace MasterCardFileRead.Services
                    authCode = null, terminalId = null, merchantId = null, merchantName = null, ird = null, sourceAmount = null, sourceCurrency = null, newErrorDescriptionLine = null;
 
             // Lists for error data
-            using (var reader = new StreamReader(filePath))
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
             {
                 string line;
                 bool isMessageLevelReject = false;
-
+                //string content = reader.ReadToEnd();
+                //Console.WriteLine($"Detected Encoding: {reader.CurrentEncoding.EncodingName}");
 
                 while ((line = reader.ReadLine()) != null)
                 {
@@ -302,6 +303,8 @@ namespace MasterCardFileRead.Services
                 grandTotalSourceAmount += Convert.ToDouble(record.SourceAmount);
 
                 worksheet.Cells[rowIndex, 5, rowIndex, 8].Style.WrapText = true;
+                worksheet.Cells[rowIndex, 1, rowIndex, 18].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                worksheet.Cells[rowIndex, 1, rowIndex, 18].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                 worksheet.Cells.AutoFitColumns();
 
                 rowIndex++;

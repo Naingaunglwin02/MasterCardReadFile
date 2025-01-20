@@ -51,12 +51,20 @@ public class FileUploadController : ControllerBase
         string excelPath = Path.Combine(Path.GetTempPath(), "temp_file.xlsx");
 
         Dictionary<CompositeKey, ErrorDescriptionModel> sectionDescriptionRejectTransaction = new();
-
         try
         {
+            HashSet<string> uniqueFileNames = new HashSet<string>();
+
             foreach (var file in files)
             {
                 if (file.Length == 0) continue;
+
+                if (uniqueFileNames.Contains(file.FileName))
+                {
+                    return BadRequest(new { message = $"The file '{file.FileName}' is duplicate" });
+                }
+
+                uniqueFileNames.Add(file.FileName);
 
                 // Save the uploaded file to a temporary location
                 var tempFilePath = Path.GetTempFileName();

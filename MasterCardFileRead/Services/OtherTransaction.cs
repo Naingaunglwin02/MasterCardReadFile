@@ -1,5 +1,6 @@
 ﻿using MasterCardFileRead.Models;
 using OfficeOpenXml;
+using System.Text;
 
 namespace MasterCardFileRead.Services
 {
@@ -9,7 +10,7 @@ namespace MasterCardFileRead.Services
         {
             var otherTransactionRecords = new List<TransactionModel>();
 
-            using (var reader = new StreamReader(filePath))
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
             {
                 string line;
                 string date = null, memberID = null, cycle = null, fileId = null, endOfReport = null;
@@ -115,8 +116,6 @@ namespace MasterCardFileRead.Services
             }
 
             CalculateDrCr.AddFinalSubtotalsAndGrandTotals(worksheet, ref rowIndex, previousCycle, totalCount, totalDr, totalCr, totalTranDr, totalTranCr, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr, grandTotalCount);
-
-            worksheet.Cells.AutoFitColumns();
         }
     }
 }
