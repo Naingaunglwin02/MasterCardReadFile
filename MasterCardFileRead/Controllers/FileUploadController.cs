@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MasterCardFileRead.Models;
 using MasterCardFileRead.Services;
 using System.Transactions;
+using System.Text.RegularExpressions;
 
 [ApiController]
 [Route("api/")]
@@ -55,9 +56,14 @@ public class FileUploadController : ControllerBase
         {
             HashSet<string> uniqueFileNames = new HashSet<string>();
 
+            string extractedDate = DateTime.Now.ToString("yyyy-MM-dd");
+
             foreach (var file in files)
             {
-                if (file.Length == 0) continue;
+                if (file.Length == 0)
+                {
+                    return BadRequest(new { message = $"The file '{file.FileName}' is empty" });
+                };
 
                 if (uniqueFileNames.Contains(file.FileName))
                 {
@@ -65,6 +71,17 @@ public class FileUploadController : ControllerBase
                 }
 
                 uniqueFileNames.Add(file.FileName);
+
+                var match = Regex.Match(file.FileName, @"\d{4}-\d{2}-\d{2}");
+                if (match.Success)
+                {
+                    DateTime parsedDate;
+                    if (DateTime.TryParseExact(match.Value, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+                    {
+                        extractedDate = parsedDate.ToString("dd-MM-yyyy");
+                    }
+                }
+
 
                 // Save the uploaded file to a temporary location
                 var tempFilePath = Path.GetTempFileName();
@@ -107,11 +124,12 @@ public class FileUploadController : ControllerBase
             }
 
             FileParserService fileParserService = new FileParserService();
+            string outputFileName = $"{extractedDate}.xlsx";
             fileParserService.GenerateExcelFile(allSections, allSectionsFee, issuingTransactionSection, allSectionsPos, rejectTransactionSection, sectionDescriptionRejectTransaction, excelPath);
 
             var bytes = System.IO.File.ReadAllBytes(excelPath);
 
-            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "result.xlsx");
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", outputFileName);
         }
         finally
         {

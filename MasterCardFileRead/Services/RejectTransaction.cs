@@ -1,4 +1,5 @@
-﻿using MasterCardFileRead.Models;
+﻿using MasterCardFileRead.Constants;
+using MasterCardFileRead.Models;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using OfficeOpenXml;
 using System.Collections.Generic;
@@ -21,16 +22,14 @@ namespace MasterCardFileRead.Services
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             // Lists for error data
-            using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding(CommonConstants.Encoding)))
             {
                 string line;
                 bool isMessageLevelReject = false;
-                //string content = reader.ReadToEnd();
-                //Console.WriteLine($"Detected Encoding: {reader.CurrentEncoding.EncodingName}");
-
+               
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Contains("MESSAGE LEVEL REJECT"))
+                    if (line.Contains(CommonConstants.MessageLevelReject))
                     {
                         isMessageLevelReject = true;
                         continue;
@@ -46,46 +45,46 @@ namespace MasterCardFileRead.Services
                         }
                     }
 
-                    if (line.Contains("SOURCE MESSAGE #:"))
+                    if (line.Contains(CommonConstants.SourceMessage))
                         sourceMessage = FileReadConditionService.ExtractResourceMessage(line);
 
-                    if (line.Contains("MTI-FUNCTION CODE:"))
+                    if (line.Contains(CommonConstants.MtiFunctionCode))
                         mtiFunctionCode = FileReadConditionService.ExtractMtiFunctionCode(line);
 
-                    if (line.Contains("FILE ID:"))
+                    if (line.Contains(CommonConstants.FileId))
                         fileId = FileReadConditionService.ExtractFileID(line);
 
-                    if (line.Contains("D0002"))
+                    if (line.Contains(CommonConstants.CardNumber))
                         cardNumber = FileReadConditionService.ExtractD0002(line);
 
-                    if (line.Contains("D0026"))
+                    if (line.Contains(CommonConstants.MccCode))
                         mccCode = FileReadConditionService.ExtractD0026(line);
 
-                    if (line.Contains("D0037"))
+                    if (line.Contains(CommonConstants.RnnCode))
                         rrnCode = FileReadConditionService.ExtractD0037(line);
 
-                    if (line.Contains("D0038"))
+                    if (line.Contains(CommonConstants.AuthCode))
                         authCode = FileReadConditionService.ExtractD0038(line);
 
-                    if (line.Contains("D0041"))
+                    if (line.Contains(CommonConstants.TerminalId))
                         terminalId = FileReadConditionService.ExtractD0041(line);
 
-                    if (line.Contains("D0042"))
+                    if (line.Contains(CommonConstants.MerchantId))
                         merchantId = FileReadConditionService.ExtractD0042(line);
 
-                    if (line.Contains("D0043 S01"))
+                    if (line.Contains(CommonConstants.MerchantName))
                         merchantName = FileReadConditionService.ExtractD0043S01(line);
 
-                    if (line.Contains("P0158 S04"))
+                    if (line.Contains(CommonConstants.IrdValue))
                         ird = FileReadConditionService.ExtractP0158S04(line);
 
-                    if (line.Contains("SOURCE AMOUNT:"))
+                    if (line.Contains(CommonConstants.SourceAmount))
                         sourceAmount = FileReadConditionService.ExtractSourceAmount(line);
 
-                    if (line.Contains("SOURCE CURRENCY:"))
+                    if (line.Contains(CommonConstants.SourceCurrency))
                         sourceCurrency = FileReadConditionService.ExtractSourceCurrency(line);
 
-                    if (line.Contains("PROCESSING MODE:"))
+                    if (line.Contains(CommonConstants.ProcessingMode))
                     {
                         processingMode = FileReadConditionService.ExtractProcessingMode(line);
 
@@ -143,25 +142,25 @@ namespace MasterCardFileRead.Services
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
+                    if (line.Contains(CommonConstants.Date))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
-                    if (line.Contains("MTI-FUNCTION CODE: 1240-200"))
+                    if (line.Contains(CommonConstants.RejectMtiFunctionCode))
                     {
                         isMTI = true;
                         mtiFunctionCode = FileReadConditionService.ExtractMtiFunctionCode(line);
                         continue;
                     }
                     // Check for DESCRIPTION section start
-                    if (isMTI && line.Contains("DESCRIPTION"))
+                    if (isMTI && line.Contains(CommonConstants.RejectDescription))
                     {
                         isDescriptionFound = true;
                         continue; // Skip the "DESCRIPTION" line
                     }
 
                     // Check for MESSAGE DETAILS section start
-                    if (line.Contains("MESSAGE DETAILS"))
+                    if (line.Contains(CommonConstants.RejectMessageDetail))
                     {
 
                         isDescriptionFound = false;

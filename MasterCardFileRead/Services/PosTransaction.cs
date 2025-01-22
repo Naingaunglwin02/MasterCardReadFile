@@ -2,6 +2,7 @@
 using OfficeOpenXml;
 using MasterCardFileRead.Services;
 using System.Text;
+using MasterCardFileRead.Constants;
 
 namespace MasterCardFileRead.Services
 {
@@ -13,29 +14,29 @@ namespace MasterCardFileRead.Services
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            using (var reader = new StreamReader(filePath, Encoding.GetEncoding("Windows-1252")))
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding(CommonConstants.Encoding)))
             {
                 string line;
                 string date = null, memberID = null, cycle = null, fileId = null, endOfReport = null;
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Contains("BUSINESS SERVICE LEVEL:"))
+                    if (line.Contains(CommonConstants.Date))
                     {
                         date = FileReadConditionService.ExtractDate(line, ref date);
                     }
 
-                    if (line.Contains("MEMBER ID:"))
+                    if (line.Contains(CommonConstants.MemberId))
                     {
                         memberID = FileReadConditionService.ExtractMemberID(line);
                     }
 
-                    if (line.Contains("ACCEPTANCE BRAND:"))
+                    if (line.Contains(CommonConstants.Cycle))
                     {
                         cycle = FileReadConditionService.ExtractAcceptanceBrandCycle(line);
                     }
 
-                    if (line.Contains("FILE ID:"))
+                    if (line.Contains(CommonConstants.FileId))
                     {
                         fileId = FileReadConditionService.ExtractFileID(line);
                     }
