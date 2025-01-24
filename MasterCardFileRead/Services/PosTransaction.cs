@@ -98,6 +98,8 @@ namespace MasterCardFileRead.Services
 
             string previousCycle = null;
             string previousDate = null;
+            string previousFileId = null;
+
 
             int totalCount = 0;
             double totalDr = 0, totalCr = 0, totalTranDr = 0, totalTranCr = 0, totalTransFee = 0;
@@ -106,9 +108,14 @@ namespace MasterCardFileRead.Services
 
             foreach (var record in ecommerceTransactionRecords)
             {
-                if (CalculateDrCr.ShouldAddGrandTotals(previousDate, record.Date))
+                if (CalculateDrCr.ShouldAddSubtotals(previousFileId, record.FileId))
                 {
                     CalculateDrCr.AddSubtotals(worksheet, ref rowIndex, ref totalCount, ref totalDr, ref totalCr, ref totalTranDr, ref totalTranCr, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr);
+                }
+
+                if (CalculateDrCr.ShouldAddGrandTotals(previousDate, record.Date))
+                {
+                    // CalculateDrCr.AddSubtotals(worksheet, ref rowIndex, ref totalCount, ref totalDr, ref totalCr, ref totalTranDr, ref totalTranCr, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr);
                     CalculateDrCr.AddGrandTotals(worksheet, ref rowIndex, grandTotalCount, grandTotalDr, grandTotalCr, grandTotalTransDr, grandTotalTransCr);
                     TotalTransactions.ResetGrandTotalVariables(ref grandTotalCount, ref grandTotalDr, ref grandTotalCr, ref grandTotalTransDr, ref grandTotalTransCr);
                 }
@@ -117,6 +124,7 @@ namespace MasterCardFileRead.Services
 
                 previousCycle = record.Cycle;
                 previousDate = record.Date;
+                previousFileId = record.FileId;
                 rowIndex++;
             }
 

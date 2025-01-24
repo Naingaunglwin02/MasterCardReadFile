@@ -23,6 +23,9 @@ public static class FileReadConditionService
             foreach (var part in parts)
             {
                 // Check if part is a valid date
+                //If part is a valid date, parsedDate will store that date.
+                //If part is not a valid date, the method returns false, and parsedDate is not assigned
+
                 if (DateOnly.TryParse(part, out DateOnly parsedDate))
                 {
                     date = part;

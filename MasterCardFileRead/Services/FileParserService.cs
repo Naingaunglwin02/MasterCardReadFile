@@ -29,8 +29,17 @@ public class FileParserService
                   !string.IsNullOrEmpty(record.FileId) &&
                   FileReadConditionService.ExtractFileIDEven(record.FileId) != null)
                 .OrderBy(record => record.Date)
-                .ThenBy(record => record.Cycle)
+                .ThenBy(record => record.FileId)
                 .ToList();
+
+            var filteredPosRecord = posTransactionRecord
+            .Where(record =>
+              record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
+              !string.IsNullOrEmpty(record.FileId) &&
+              FileReadConditionService.ExtractFileIDOdd(record.FileId) != null)
+            .OrderBy(record => record.Date)
+            .ThenBy(record => record.FileId)
+            .ToList();
 
             var filteredOtherRecord = otherTransactionRecord
                 .Where(record => record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
@@ -46,15 +55,6 @@ public class FileParserService
                 .ThenBy(record => record.Cycle)
                 .ToList();
                 
-            var filteredPosRecord = posTransactionRecord
-                .Where(record =>
-                  record.MemberID?.Contains("00000017046", StringComparison.OrdinalIgnoreCase) == true &&
-                  !string.IsNullOrEmpty(record.FileId) &&
-                  FileReadConditionService.ExtractFileIDOdd(record.FileId) != null)
-                .OrderBy(record => record.Date)
-                .ThenBy(record => record.Cycle)
-                .ToList();
-
             var ecommerceTransactionSheet = package.Workbook.Worksheets.Add("Acquiring_Ecommerce");
             EcommerceTransaction ecommerceTransaction = new EcommerceTransaction();
             ecommerceTransaction.AddDataToSheet(ecommerceTransactionSheet, filteredEcommerceRecord);
